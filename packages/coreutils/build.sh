@@ -18,51 +18,19 @@
 #     program, and there are none.
 #   - musl.mk, for the one file that cannot compile without being told which
 #     C library it has. It says why.
-set -e
-SRC=${1:?usage: build.sh <source> <build-dir> <dest-dir>}
-OBJ=${2:?usage: build.sh <source> <build-dir> <dest-dir>}
-DEST=${3:?usage: build.sh <source> <build-dir> <dest-dir>}
-HERE=$(cd "$(dirname "$0")" && pwd)
-TOOLS=$HERE/../../tools
+. "$(dirname "$0")/../../tools/recipe.sh"
 
-sh "$TOOLS/teach-config-sub.sh" "$SRC/build-aux/config.sub"
-
-mkdir -p "$OBJ" "$DEST/usr/bin"
-SRC=$(cd "$SRC" && pwd)
-OBJ=$(cd "$OBJ" && pwd)
-DEST=$(cd "$DEST" && pwd)
-cd "$OBJ"
-# Built against a C library that has since changed is not built: the library
-# is inside every program. Start again from clean.
-STAMP=$(sh "$TOOLS/libc-stamp.sh")
-if [ -f Makefile ] && [ "$(cat libc.stamp 2>/dev/null)" != "$STAMP" ]; then
-    echo "coreutils: the C library has changed; building again"
-    make clean >/dev/null
-fi
-echo "$STAMP" > libc.stamp
-if [ ! -f Makefile ]; then
-    "$SRC/configure" \
-        --host=x86_64-quark \
-        --prefix=/usr \
-        CC=x86_64-quark-musl-gcc \
-        --disable-nls --disable-acl --disable-xattr --disable-libcap \
-        --disable-threads --without-selinux --without-openssl \
-        --enable-no-install-program=stdbuf
-fi
+teach build-aux/config.sub
+configured || "$SRC/configure" $HOST \
+    --disable-nls --disable-acl --disable-xattr --disable-libcap \
+    --disable-threads --without-selinux --without-openssl \
+    --enable-no-install-program=stdbuf
 MAKEFILES="$HERE/musl.mk" make -j"${JOBS:-$(nproc)}"
 
 # The programs, and only the programs: an install also brings manuals, and a
 # build tree also holds helpers built for the machine it was built on. What
 # `make install` would put in bin is what is wanted, so it is asked. It
 # installs over what the last build installed; which programs there are is
-# decided by `configure`, and that runs once for a build directory.
-STAGING=$OBJ/install
-make install-exec DESTDIR="$STAGING" >/dev/null
-n=0
-for f in "$STAGING"/usr/bin/*; do
-    [ -f "$f" ] && [ -x "$f" ] || continue
-    cp "$f" "$DEST/usr/bin/"
-    x86_64-quark-strip "$DEST/usr/bin/$(basename "$f")"
-    n=$((n + 1))
-done
-echo "coreutils: $n programs in $DEST/usr/bin"
+# decided by `configure`.
+make install-exec DESTDIR="$OBJ/install" >/dev/null
+install_staged "$OBJ/install/usr/bin"

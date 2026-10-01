@@ -92,22 +92,33 @@ What a recipe *may* do:
    ftp.gnu.org — and the file says who signed it.
 2. `packages/<name>/build.sh <source> <build-dir> <dest-dir>`. It configures
    out of tree in `<build-dir>`, and leaves in `<dest-dir>` what the image
-   carries, laid out like the root (`usr/bin/...`). `--host=x86_64-quark`,
-   `--prefix=/usr`, `CC=x86_64-quark-musl-gcc`, static.
+   carries, laid out like the root (`usr/bin/...`). An autoconf package's
+   recipe begins by sourcing `tools/recipe.sh`, which leaves it three things
+   to say: where `config.sub` is (`teach`), what `configure` is told
+   (`configured || "$SRC/configure" $HOST ...`), and which programs go in the
+   image (`install_programs`, `install_staged`).
 3. The name in `PACKAGES :=` in the Makefile.
 4. Something in `rootfs/usr/share/gnu-quark/selftest`, and in
    `tests/acceptance.keys` if a person would type it.
 
-Two things every recipe does, and a new one should copy:
+`tools/recipe.sh` is what every recipe has in common, and two of the things
+it does are there because nothing in a package's own Makefile can know them:
 
 - **It starts again when the C library has changed.** Every program is
   static, so the library is inside it. `tools/libc-stamp.sh` is a checksum
-  of the library, its startup file and the Linux layer; a recipe keeps the
-  one it built against and runs `make clean` when it differs. Without it a
-  fix to the layer is in the image's `ls` only if `ls` happened to be
+  of the library, its startup file and the Linux layer; the build directory
+  keeps the one it was built against and is cleaned when it differs. Without
+  it a fix to the layer is in the image's `ls` only if `ls` happened to be
   rebuilt.
-- **It strips what it installs.** An unstripped coreutils is three times
-  the size, and the root is 160 MiB.
+- **It configures again when the recipe has changed.** What `configure` was
+  told is decided once for a build directory, so an answer added to a
+  `config.site`, or a flag taken out, did nothing until the directory was
+  thrown away: bash went on believing there were no named pipes after the
+  line that said so was changed. The checksum is of the package's directory
+  and of `recipe.sh` itself.
+
+And it strips what it installs: an unstripped coreutils is three times the
+size, and the root is 160 MiB.
 
 `tools/fetch.sh` unpacks a fresh copy under `build/src` when there is none.
 A recipe never writes anywhere else in it than `config.sub`.

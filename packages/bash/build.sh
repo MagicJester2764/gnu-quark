@@ -22,41 +22,16 @@
 #     has for a system whose termcap library owns them.
 #   - The termcap library is bash's own, lib/termcap, reading /etc/termcap —
 #     where the console's entry is installed by the console.
-set -e
-SRC=${1:?usage: build.sh <source> <build-dir> <dest-dir>}
-OBJ=${2:?usage: build.sh <source> <build-dir> <dest-dir>}
-DEST=${3:?usage: build.sh <source> <build-dir> <dest-dir>}
-HERE=$(cd "$(dirname "$0")" && pwd)
-TOOLS=$HERE/../../tools
+. "$(dirname "$0")/../../tools/recipe.sh"
 
-sh "$TOOLS/teach-config-sub.sh" "$SRC/support/config.sub"
-
-mkdir -p "$OBJ" "$DEST/usr/bin"
-SRC=$(cd "$SRC" && pwd)
-OBJ=$(cd "$OBJ" && pwd)
-DEST=$(cd "$DEST" && pwd)
-cd "$OBJ"
-# Built against a C library that has since changed is not built: the library
-# is inside every program. Start again from clean.
-STAMP=$(sh "$TOOLS/libc-stamp.sh")
-if [ -f Makefile ] && [ "$(cat libc.stamp 2>/dev/null)" != "$STAMP" ]; then
-    echo "bash: the C library has changed; building again"
-    make clean >/dev/null
-fi
-echo "$STAMP" > libc.stamp
-if [ ! -f Makefile ]; then
-    CONFIG_SITE="$HERE/config.site" "$SRC/configure" \
-        --host=x86_64-quark \
-        --prefix=/usr \
-        CC=x86_64-quark-musl-gcc \
-        CPPFLAGS=-DNEED_EXTERN_PC \
-        --without-bash-malloc \
-        --disable-nls \
-        --disable-job-control \
-        --enable-static-link
-fi
+teach support/config.sub
+configured || CONFIG_SITE="$HERE/config.site" "$SRC/configure" $HOST \
+    CPPFLAGS=-DNEED_EXTERN_PC \
+    --without-bash-malloc \
+    --disable-nls \
+    --disable-job-control \
+    --enable-static-link
 make -j"${JOBS:-$(nproc)}"
 
-cp bash "$DEST/usr/bin/bash"
-x86_64-quark-strip "$DEST/usr/bin/bash"
+install_programs bash
 echo "bash: $(wc -c < "$DEST/usr/bin/bash") bytes in $DEST/usr/bin"
