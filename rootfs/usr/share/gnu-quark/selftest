@@ -123,6 +123,19 @@ is "rm -r"         "$(test ! -e d && test ! -e d3 && echo yes)" "yes"
 rmdir "$(mktemp -d ./tmp.XXXXXX)" && is "mktemp, rmdir" "$(ls -d tmp.* 2> /dev/null | wc -l)" "0"
 is "sync"          "$(sync && echo yes)"                        "yes"
 
+# --- a pipe with a name -----------------------------------------------------------
+mkfifo pipe
+is "mkfifo"        "$(stat -c %F pipe)"                         "fifo"
+is "test -p"       "$(test -p pipe && echo yes)"                "yes"
+is "ls -l of one"  "$(ls -l pipe | cut -c1)"                    "p"
+is "writer first"  "$(echo said > pipe & cat pipe; wait)"       "said"
+is "reader first"  "$( (sleep 1; echo late > pipe) & read -r x < pipe; wait; echo "$x")" "late"
+is "two lines"     "$(printf 'a\nb\n' > pipe & wc -l < pipe; wait)" "2"
+mknod pipe2 p
+is "mknod p"       "$(test -p pipe2 && echo yes)"               "yes"
+rm pipe pipe2
+is "rm of one"     "$(test ! -e pipe && echo yes)"              "yes"
+
 # --- the shell ------------------------------------------------------------------
 is "arithmetic"    "$((2 ** 10 + 7 % 4))"                       "1027"
 is "arrays"        "$(a=(x y z); echo ${#a[@]} ${a[1]})"        "3 y"

@@ -39,6 +39,12 @@ type echo redirected > /tmp/f; cat < /tmp/f\n
 expect 30 #$
 saw ^redirected$
 
+# A pipe with a name: two commands that meet at a place in the filesystem.
+type mkfifo /tmp/p; ls -l /tmp/p | cut -c1; (echo met by name > /tmp/p &); cat /tmp/p; rm /tmp/p\n
+expect 30 #$
+saw ^p$
+saw ^met by name$
+
 # The shell moves, and what it starts starts where it is: the two
 # directories of programs, found from inside /usr by a pattern.
 type cd /usr && pwd && ls -d *bin | wc -l\n

@@ -151,8 +151,9 @@ done by bash or by one of the coreutils.
   `jobs`, `fg` or `bg`, and Ctrl-Z does nothing. `&` and `wait` work.
   Ctrl-C goes to every program that has the terminal open, and the shell
   survives it the way a shell without job control does on any Unix.
-- **No named pipes, and no `chroot`.** `mkfifo` and `mknod` are refused by
-  the filesystem. `<(command)` works, through `/dev/fd`.
+- **No `chroot`**, and `mknod` makes a named pipe and nothing else: there
+  are no device files to make. A named pipe cannot be opened for reading
+  and writing at once (`exec 3<>pipe`).
 - **Nobody is logged in**, as far as `who` and `users` can tell: there is no
   record of sessions for them to read.
 - **A combining character is not drawn.** The console is UTF-8 and draws

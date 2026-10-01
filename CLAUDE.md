@@ -65,7 +65,8 @@ unmodified put into Quark: files as kernel descriptors (so `fork` copies
 them and `exec` keeps them, and `> file` is something a shell can do to a
 child); a console that is a terminal, with a line discipline; signals; process
 ids that are not reused at once; `getresuid`; an alarm and SIGCHLD; a name for
-a terminal. Each was found by a GNU program doing something ordinary.
+a terminal; a console that draws UTF-8; named pipes. Each was found by a GNU
+program doing something ordinary.
 
 What a recipe *may* do:
 
@@ -200,9 +201,9 @@ pid twice; `timeout` waiting for ever was a SIGCHLD nobody raised.
 - **No job control**, and bash is built without it (`--disable-job-control`):
   no `jobs`, `fg`, `bg`, no Ctrl-Z, and `PIPESTATUS` holds one status.
   Process groups are the kernel's to grow first.
-- **No named pipes**; bash is told so (`bash_cv_sys_named_pipes=missing`)
-  and makes `<(...)` out of `/dev/fd` instead. `mkfifo`, `mknod` and
-  `chroot` are installed and refused.
+- **`chroot` is installed and refused**, and `mknod` makes a named pipe
+  and nothing else. A named pipe is not opened `O_RDWR`, so `exec 3<>pipe`
+  fails; `<(...)` is made of `/dev/fd`, which bash prefers when it has both.
 - **No utmp**: `who`, `users` and `pinky` print nothing.
 - **No combining characters** on the console, and one keyboard layout.
 - **A program run by the shell holds what the shell holds.** The kernel
