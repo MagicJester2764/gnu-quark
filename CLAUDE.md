@@ -6,17 +6,17 @@ repositories that must be checked out as siblings:
 
 ```
 repos/
-  quark/       the kernel
-  quarkutils/  everything Quark's own that runs on it
-  bang/        the UEFI bootloader
-  explosion/   the other distribution, and where the cross toolchain is built
-  gnu-quark/   this repo — recipes for GNU's programs, and the image
+  quark/            the kernel
+  quarkutils/       everything Quark's own that runs on it
+  bang/             the UEFI bootloader
+  quark-toolchain/  the cross compilers
+  gnu-quark/        this repo — recipes for GNU's programs, and the image
 ```
 
 The dependency runs one way: this tree reaches down to `quark`, `quarkutils`
-and `bang`, asks each to install, and none of them knows it exists. It does
-not reach into ExplOSion at all; it needs the compiler ExplOSion's
-`toolchain/` builds to be on `PATH`, and nothing else from there.
+and `bang`, asks each to install, and none of them knows it exists. From
+`quark-toolchain` it needs what that installs — the compilers, on `PATH` —
+and nothing in its checkout.
 
 Rules about the kernel are in `../quark/CLAUDE.md`, and rules about programs,
 the C library and the console in `../quarkutils/CLAUDE.md`. Read those before
@@ -30,9 +30,8 @@ export PATH="$HOME/.local/bin:$HOME/opt/cross/bin:$PATH"
 ```
 
 `x86_64-quark-musl-gcc` and `x86_64-quark-strip` are the cross toolchain,
-which ExplOSion's `toolchain/` installs under `~/opt/cross`; `mkgpt` is
-wherever it was put, here `~/.local/bin`. Without the first two nothing
-configures.
+which `../quark-toolchain` installs under `~/opt/cross`; `mkgpt` is wherever
+it was put, here `~/.local/bin`. Without the first two nothing configures.
 
 ## Build and run
 
@@ -118,8 +117,8 @@ A recipe never writes anywhere else in it than `config.sub`.
 `tools/mkroot.sh` is where the distribution is decided. It takes four
 programs from quarkutils **by name** — `getty`, `login`, `ps`, `shutdown` —
 and the console's `termcap`. A root with all of quarkutils' programs in it
-is ExplOSion. Before adding a fifth, ask whether GNU has the program: if it
-does, it is a package.
+is not a GNU system. Before adding a fifth, ask whether GNU has the program:
+if it does, it is a package.
 
 `rootfs/` is copied over the top, and is the whole of what makes the image
 this system rather than a pile of programs: `passwd`, `group`, `init.conf`
@@ -173,8 +172,8 @@ and takes a second to find.
 
 When something hangs or prints the wrong thing, the fault is almost never in
 the package. Reduce it to a few lines of C, built with
-`x86_64-quark-musl-gcc`, and it becomes a test in
-`../explosion/toolchain/tests` and a fix in the layer or the kernel. The
+`x86_64-quark-musl-gcc`, and it becomes a test in `../quarkutils/ctests`
+and a fix in the layer or the kernel. The
 out-of-order pipelines after a background job were bash being told the same
 pid twice; `timeout` waiting for ever was a SIGCHLD nobody raised.
 

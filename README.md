@@ -47,24 +47,24 @@ them from. Everything a person types a command to is GNU's, except `ps` —
 what is running is the kernel's to say, and there is no `/proc` to read it
 from — and `shutdown`.
 
-Four of quarkutils' programs are taken by name, and nothing else is. A root
-with all of them in it is a different distribution:
-[ExplOSion](https://github.com/MagicJester2764/explosion), which has Quark's
-own shell, a compositor and GTK.
+Four of quarkutils' programs are taken by name, and nothing else is: its
+own shell and its own `ls` are not what this is a distribution of.
 
 ## Building it
 
-Four repositories, checked out side by side:
+Five repositories, checked out side by side:
 
 ```
-quark/        the kernel
-quarkutils/   the programs that run on it
-bang/         the bootloader
-gnu-quark/    this
+quark/             the kernel
+quarkutils/        the programs that run on it
+bang/              the bootloader
+quark-toolchain/   the cross compilers
+gnu-quark/         this
 ```
 
-and a cross compiler on `PATH`: `x86_64-quark-musl-gcc`, which ExplOSion's
-`toolchain/` builds (its README says how). The three trees beside this one
+GNU's programs are built with `x86_64-quark-musl-gcc`, which
+[quark-toolchain](https://github.com/MagicJester2764/quark-toolchain) builds
+and its README says how; it has to be on `PATH`. The trees beside this one
 say what they need to build; this one adds `mtools`, `mkgpt`, `e2fsprogs`
 and `qemu-system-x86_64`.
 

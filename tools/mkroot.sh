@@ -9,8 +9,9 @@
 #
 # This is where the distribution is decided. Three things are taken from
 # quarkutils by name and nothing else is: a root with every one of its
-# programs in it would be ExplOSion. What is taken is what a machine needs in
-# order to have a session at all, and the two things GNU has no program for.
+# programs in it would not be a GNU system. What is taken is what a machine
+# needs in order to have a session at all, and the two things GNU has no
+# program for.
 #
 #   getty, login   a terminal for a session, and somebody to be on it
 #   shutdown       turning the machine off is the system's business
