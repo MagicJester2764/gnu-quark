@@ -24,6 +24,12 @@ ac_cv_func_strcoll_works=yes
 ac_cv_func_working_mktime=yes
 ac_cv_func_chown_works=yes
 
+# A pipeline is put in one process group a program at a time, and the first
+# may be done before the last has joined. bash can hold them all at a pipe
+# until the group is made, and does on Linux, where configure is told so by
+# name rather than by finding out.
+bash_cv_pgrp_pipe=yes
+
 # /dev/fd/N and /dev/stdin open as the descriptor they name, which is what
 # <(command) is made of. There are named pipes too, and bash prefers /dev/fd
 # when it has both.

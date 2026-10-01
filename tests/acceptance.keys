@@ -75,6 +75,44 @@ type echo interrupted $?\n
 expect 20 #$
 saw ^interrupted 130$
 
+# Ctrl-Z stops what is running and gives the prompt back, and the shell
+# knows what it has: a job.
+type sleep 100\n
+sleep 2
+key ctrl+z
+expect 20 #$
+saw ^\[1\]\+  Stopped +sleep 100$
+type ps\n
+expect 20 #$
+saw ^ +\d+ +\d+ +\d+ +STOP +0$
+
+# Behind, it runs. In front again, Ctrl-C is for it and not for the shell.
+type bg; sleep 1; jobs\n
+expect 20 #$
+saw ^\[1\]\+  Running +sleep 100 &$
+type fg\n
+sleep 2
+key ctrl+c
+expect 20 #$
+type echo ended $? with $(jobs | wc -l) left\n
+expect 20 #$
+saw ^ended 130 with 0 left$
+
+# A job that reads the terminal from behind is stopped until it is brought
+# forward: what is typed is for whoever is in front.
+type cat &\n
+expect 20 #$
+type jobs\n
+expect 20 #$
+saw ^\[1\]\+  Stopped +cat$
+type fg\n
+sleep 1
+type what cat was given\n
+sleep 1
+key ctrl+d
+expect 20 #$
+saw ^what cat was given$
+
 # A command run after a background job is still waited for: each number below
 # is printed by a program started after the last one ended.
 type sleep 1 & wait; date +%s > /tmp/t1; sleep 2; date +%s > /tmp/t2; echo took $(( $(cat /tmp/t2) - $(cat /tmp/t1) ))\n

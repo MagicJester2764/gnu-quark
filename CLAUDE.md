@@ -65,8 +65,9 @@ unmodified put into Quark: files as kernel descriptors (so `fork` copies
 them and `exec` keeps them, and `> file` is something a shell can do to a
 child); a console that is a terminal, with a line discipline; signals; process
 ids that are not reused at once; `getresuid`; an alarm and SIGCHLD; a name for
-a terminal; a console that draws UTF-8; named pipes. Each was found by a GNU
-program doing something ordinary.
+a terminal; a console that draws UTF-8; named pipes; process groups, sessions
+and jobs that stop. Each was found by a GNU program doing something
+ordinary.
 
 What a recipe *may* do:
 
@@ -80,7 +81,7 @@ What a recipe *may* do:
   the ones that are wrong, each with what breaks if it is left: bash thought
   the exit status was in the low byte of a wait status, and every command
   had succeeded.
-- **Pass a flag the package has for the purpose** (`--disable-job-control`,
+- **Pass a flag the package has for the purpose** (`--without-bash-malloc`,
   `-DNEED_EXTERN_PC`), or define a macro for a file that asks for one
   (`packages/coreutils/musl.mk`, through `MAKEFILES`, for one object).
 
@@ -198,9 +199,8 @@ pid twice; `timeout` waiting for ever was a SIGCHLD nobody raised.
 
 ## Known gaps
 
-- **No job control**, and bash is built without it (`--disable-job-control`):
-  no `jobs`, `fg`, `bg`, no Ctrl-Z, and `PIPESTATUS` holds one status.
-  Process groups are the kernel's to grow first.
+- **`stty tostop` does nothing**: a job is stopped for reading the terminal
+  from the background and never for writing to it.
 - **`chroot` is installed and refused**, and `mknod` makes a named pipe
   and nothing else. A named pipe is not opened `O_RDWR`, so `exec 3<>pipe`
   fails; `<(...)` is made of `/dev/fd`, which bash prefers when it has both.

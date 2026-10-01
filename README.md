@@ -127,6 +127,12 @@ user's shell as a login shell, at home, with `HOME`, `USER`, `PATH` and
 `/etc/termcap` entry is `linux` — so colours, the arrow keys and a cursor
 that moves are what programs expect them to be.
 
+The shell has job control. `getty` begins a session and takes the console
+as its terminal, and bash puts each pipeline in a process group of its own:
+Ctrl-C and Ctrl-Z are for whatever is in front, `jobs`, `fg` and `bg` say
+and change which that is, and a job that reads the terminal from the
+background is stopped until it is brought forward.
+
 It is UTF-8. Before the session, `init` runs `setfont`, which gives the
 console GNU Unifont — the console itself was built with ASCII and nothing
 else — and `/etc/profile` sets `LANG=C.UTF-8`, so that `ls` prints a name
@@ -146,11 +152,10 @@ done by bash or by one of the coreutils.
 
 ## What does not work
 
-- **No job control.** Stopping a job and handing it the terminal needs
-  process groups, and Quark has none. bash is built without it: there is no
-  `jobs`, `fg` or `bg`, and Ctrl-Z does nothing. `&` and `wait` work.
-  Ctrl-C goes to every program that has the terminal open, and the shell
-  survives it the way a shell without job control does on any Unix.
+- **`stty tostop` does nothing.** There is job control — Ctrl-Z, `jobs`,
+  `fg`, `bg`, and a job that reads the terminal from the background is
+  stopped until it is brought forward — but one that *writes* from the
+  background is never stopped for it.
 - **No `chroot`**, and `mknod` makes a named pipe and nothing else: there
   are no device files to make. A named pipe cannot be opened for reading
   and writing at once (`exec 3<>pipe`).
