@@ -79,6 +79,13 @@ saw ^took [23]$
 type yes | head -2 | wc -l\n
 expect 30 #$
 
+# The console is UTF-8: an accent, curly quotes, Greek, and a character two
+# cells wide, each drawn as itself in the font the console was given at boot.
+# (A backslash is doubled here because this file's own escapes come first.)
+type printf 'caf\\xc3\\xa9 \\xe2\\x80\\x98q\\xe2\\x80\\x99 \\xce\\xbb \\xe4\\xb8\\xad'; echo\n
+expect 30 #$
+saw ^café ‘q’ λ 中$
+
 # The session is on a terminal, and the terminal has a name.
 type tty\n
 expect 30 #$

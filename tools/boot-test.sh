@@ -30,6 +30,12 @@ RUN=${RUNDIR:-${TMPDIR:-/tmp}/gnu-quark-boot-test}
 IMG=${IMG:-gnu-quark.img}
 BANG=${BANG_DIR:-$TOP/../bang}
 mkdir -p "$RUN"
+# The screen is read against the font it is drawn in, which is the one the
+# image loads at boot.
+if [ -z "$QUARK_FONT_HEX" ] && [ -f "$TOP/build/root/usr/share/consolefonts/unifont.hex" ]; then
+    QUARK_FONT_HEX=$TOP/build/root/usr/share/consolefonts/unifont.hex
+fi
+export QUARK_FONT_HEX
 
 [ -f "$RUN/qemu.pid" ] && kill "$(cat "$RUN/qemu.pid")" 2>/dev/null
 rm -f "$RUN/qmp.sock" "$RUN/serial.log"

@@ -3,6 +3,10 @@
 export PATH=/usr/local/bin:/usr/bin:/usr/sbin
 umask 022
 
+# The console is UTF-8, and a program has to be told: in the C locale it
+# takes every byte for a character, and counts and quotes accordingly.
+export LANG=C.UTF-8
+
 # The rest is for a shell somebody is typing at.
 case $- in
 *i*) [ -r /etc/bashrc ] && . /etc/bashrc ;;

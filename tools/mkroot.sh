@@ -7,7 +7,7 @@
 # it is made here, so that nothing in it is left over from another build.
 # Each <package-dir> is laid out like the root already, by its recipe.
 #
-# This is where the distribution is decided. Three things are taken from
+# This is where the distribution is decided. Four things are taken from
 # quarkutils by name and nothing else is: a root with every one of its
 # programs in it would not be a GNU system. What is taken is what a machine
 # needs in order to have a session at all, and the two things GNU has no
@@ -16,6 +16,8 @@
 #   getty, login   a terminal for a session, and somebody to be on it
 #   shutdown       turning the machine off is the system's business
 #   ps             what is running is the kernel's to say, and there is no /proc
+#   setfont        the console draws what it is given a font for, and this
+#                  gives it one
 #
 # /usr is the whole system: /bin and /sbin are links into it, and /bin/sh is
 # bash.
@@ -48,8 +50,10 @@ take GETTY    usr/bin/getty
 take LOGIN    usr/bin/login
 take PS       usr/bin/ps
 take SHUTDOWN usr/sbin/shutdown
-# What the console says it is, which is the console's to say.
+# What the console says it is, which is the console's to say, and the program
+# that gives it a font, which is the console's too.
 cp "$STAGE/etc/termcap" "$ROOT/etc/termcap"
+take SETFONT  usr/bin/setfont
 
 # The packages.
 for pkg in "$@"; do

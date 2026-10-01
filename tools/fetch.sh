@@ -1,6 +1,9 @@
 #!/bin/sh
 # Fetch a package's source, check it, and unpack a copy to build from.
 #
+# A source is a tarball, or one compressed file: a font is published as the
+# second.
+#
 #     tools/fetch.sh <name> <build-dir>
 #
 # The tarball is kept in $GNU_QUARK_SRC (default ~/opt/src) and is fetched only
@@ -43,8 +46,23 @@ if ! echo "$sum  $tarball" | sha256sum -c --status -; then
 fi
 if [ ! -d "$dir" ]; then
     echo "==> unpacking $NAME $version" >&2
-    tar -C "$BUILD/src" -xf "$tarball"
-    # A tarball unpacks as name-version, by convention and in both of these.
-    [ -d "$dir" ] || { echo "fetch: $tarball did not unpack as $dir" >&2; exit 1; }
+    case $tarball in
+    *.tar.*|*.tgz)
+        tar -C "$BUILD/src" -xf "$tarball"
+        # A tarball unpacks as name-version, by convention and in all of these.
+        [ -d "$dir" ] || { echo "fetch: $tarball did not unpack as $dir" >&2; exit 1; }
+        ;;
+    *.gz)
+        # One file: it is unpacked into a directory of its own, under the name
+        # it has without the .gz.
+        mkdir "$dir.part"
+        gzip -dc "$tarball" > "$dir.part/$(basename "$tarball" .gz)"
+        mv "$dir.part" "$dir"
+        ;;
+    *)
+        echo "fetch: do not know how to unpack $tarball" >&2
+        exit 1
+        ;;
+    esac
 fi
 echo "$dir"

@@ -37,17 +37,18 @@ gzip, make — is a package each, and none of them is here yet.
 |---|---|
 | The kernel | Quark, and the two modules it loads itself |
 | The bootloader | [Bang](https://github.com/MagicJester2764/bang), UEFI |
-| What makes a kernel a system | from [quarkutils](https://github.com/MagicJester2764/quarkutils): `init`, the name server, the console, the keyboard and disk drivers, the input server, the file server — and four programs: `getty`, `login`, `ps`, `shutdown` |
+| What makes a kernel a system | from [quarkutils](https://github.com/MagicJester2764/quarkutils): `init`, the name server, the console, the keyboard and disk drivers, the input server, the file server — and five programs: `getty`, `login`, `ps`, `shutdown`, `setfont` |
 | The shell | GNU bash 5.3, also `/bin/sh` |
 | The programs | GNU coreutils 9.11: 101 of them |
+| The console's font | GNU Unifont 18.0.01 |
 
 Quark is a microkernel, so the filesystem, the console and the drivers are
 programs, and those come from quarkutils because there is nobody else to get
 them from. Everything a person types a command to is GNU's, except `ps` —
 what is running is the kernel's to say, and there is no `/proc` to read it
-from — and `shutdown`.
+from — `shutdown`, and `setfont`, which is how the console is given its font.
 
-Four of quarkutils' programs are taken by name, and nothing else is: its
+Five of quarkutils' programs are taken by name, and nothing else is: its
 own shell and its own `ls` are not what this is a distribution of.
 
 ## Building it
@@ -126,6 +127,11 @@ user's shell as a login shell, at home, with `HOME`, `USER`, `PATH` and
 `/etc/termcap` entry is `linux` — so colours, the arrow keys and a cursor
 that moves are what programs expect them to be.
 
+It is UTF-8. Before the session, `init` runs `setfont`, which gives the
+console GNU Unifont — the console itself was built with ASCII and nothing
+else — and `/etc/profile` sets `LANG=C.UTF-8`, so that `ls` prints a name
+with an accent in it as the name and `wc -m` counts its characters.
+
 ## Testing
 
 `make test` boots the image under QEMU and types `tests/acceptance.keys` at
@@ -149,8 +155,10 @@ done by bash or by one of the coreutils.
   the filesystem. `<(command)` works, through `/dev/fd`.
 - **Nobody is logged in**, as far as `who` and `users` can tell: there is no
   record of sessions for them to read.
-- **The console is not UTF-8.** It draws code page 437, so the curly quotes
-  in a GNU error message are two wrong characters each.
+- **A combining character is not drawn.** The console is UTF-8 and draws
+  what GNU Unifont has, in one cell or two; a mark that sits on the
+  character before it has no cell of its own and is dropped. The keyboard
+  types ASCII: there is one layout, and it is US.
 - **A signal handler runs when the program next asks the kernel for
   something**, not in the middle of computing. Almost nothing notices.
 - **One user.** `/etc/passwd` has root in it. Users, and a program that

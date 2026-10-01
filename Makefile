@@ -18,7 +18,7 @@ BANG_DIR       ?= ../bang
 # The firmware lives in Bang because that is what needs it to exist.
 OVMF_PATH ?= $(BANG_DIR)/firmware-redist/ovmf
 
-PACKAGES := bash coreutils
+PACKAGES := bash coreutils unifont
 
 # Where this file is, and so where everything it makes goes — whatever
 # directory make was started in. The two things below that are removed are

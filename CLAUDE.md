@@ -114,9 +114,10 @@ A recipe never writes anywhere else in it than `config.sub`.
 
 ## What goes in the root
 
-`tools/mkroot.sh` is where the distribution is decided. It takes four
-programs from quarkutils **by name** — `getty`, `login`, `ps`, `shutdown` —
-and the console's `termcap`. A root with all of quarkutils' programs in it
+`tools/mkroot.sh` is where the distribution is decided. It takes five
+programs from quarkutils **by name** — `getty`, `login`, `ps`, `shutdown`,
+and `setfont`, which is the console's own tool — and the console's
+`termcap`. A root with all of quarkutils' programs in it
 is not a GNU system. Before adding a fifth, ask whether GNU has the program:
 if it does, it is a package.
 
@@ -135,6 +136,10 @@ this system rather than a pile of programs: `passwd`, `group`, `init.conf`
   quarkutils; a key or a sequence the console gains is added there.
 - `/etc/mtab` is a file, written here: one line, the root, named by its
   label. `df` reads it. There is no `/proc` for it to be a link into.
+- The console is UTF-8 and was built with ASCII. `init.conf` has a `run`
+  line that loads GNU Unifont with `setfont` before the session, and
+  `/etc/profile` sets `LANG=C.UTF-8`. The font is a package like any other
+  (`packages/unifont`), installed as GNU publishes it.
 
 `tools/mkimage.sh` makes the disk without being root and without mounting
 anything: `mkfs.ext2 -d` populates the filesystem from the directory, a
@@ -153,7 +158,9 @@ is nothing in the root to use it.
 A change is verified by booting the image. `tools/boot-test.sh <keys>`
 drives QEMU from a script (`tools/drive-qemu.py` lists the operations), and
 reads the console back as text, because a program's output goes to the
-screen and serial carries only the kernel's own faults:
+screen and serial carries only the kernel's own faults. It reads it by
+matching each cell against the font the image loads, so a character Unifont
+has can be tested for like any other:
 
 - `expect <seconds> <regex>` waits for the last line of the screen to match:
   a prompt.
@@ -186,7 +193,7 @@ pid twice; `timeout` waiting for ever was a SIGCHLD nobody raised.
   and makes `<(...)` out of `/dev/fd` instead. `mkfifo`, `mknod` and
   `chroot` are installed and refused.
 - **No utmp**: `who`, `users` and `pinky` print nothing.
-- **CP437, not UTF-8**, on the console.
+- **No combining characters** on the console, and one keyboard layout.
 - **A program run by the shell holds what the shell holds.** The kernel
   copies capabilities at a fork and keeps them across an exec, and nothing
   narrows them. With one user that is root it changes nothing yet.

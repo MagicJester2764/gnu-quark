@@ -73,6 +73,15 @@ is "env"           "$(env -i X=1 /usr/bin/printenv X)"          "1"
 is "nproc"         "$(nproc)"                                   "1"
 is "df"            "$(df -P / | tail -1 | tr -s ' ' | cut -d' ' -f6)" "/"
 
+# --- characters that are more than a byte ----------------------------------------
+cafe=$(printf 'caf\303\251')
+is "wc -m"         "$(printf '%s' "$cafe" | wc -m)"             "4"
+is "wc -c"         "$(printf '%s' "$cafe" | wc -c)"             "5"
+is "ls, a name"    "$(mkdir u && touch "u/$cafe" && ls u)"      "$cafe"
+is "\${#var}"       "${#cafe}"                                   "4"
+is "tr, upper"     "$(echo "$cafe" | cut -c1-3)"                "caf"
+is "expr length"   "$(expr length "$cafe")"                     "4"
+
 # --- time, and children ---------------------------------------------------------
 is "timeout"       "$(timeout 1 sleep 5; echo $?)"              "124"
 is "timeout, met"  "$(timeout 5 echo done; echo $?)"            "done
