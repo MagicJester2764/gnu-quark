@@ -1,0 +1,111 @@
+# The acceptance test: what GNU/Quark is for, typed at it.
+#
+# Each line is an operation (tools/drive-qemu.py has the list). `expect` waits
+# for the prompt, `saw` says what the command must have printed.
+
+# It boots to a login prompt, and the login is on a terminal.
+expect 120 ^login:$
+type root\n
+expect 30 ^root@quark:~#$
+
+# GNU ls: modes, owners, dates, and where a link goes. The colours are in the
+# screenshot.
+type ls -l --color /\n
+expect 30 #$
+saw ^lrwxrwxrwx +1 root root +7 .* bin -> usr/bin$
+saw ^drwx------ +\d+ root root +\d+ .* root$
+saw ^drwxrwxrwt +\d+ root root +\d+ .* tmp$
+shot build/acceptance-ls.ppm
+
+# cp -a keeps what it copies: the modes, and the times.
+type cp -a /etc /tmp/etc2 && ls -l /tmp/etc2\n
+expect 60 #$
+saw ^-rw-r--r-- +1 root root +\d+ .* passwd$
+type test /etc/passwd -ot /tmp/etc2/passwd || test /etc/passwd -nt /tmp/etc2/passwd || echo same age\n
+expect 30 #$
+saw ^same age$
+
+type du -sh /usr\n
+expect 120 #$
+saw ^\d+M\s+/usr$
+
+# A pipeline, both ends of it GNU's.
+type sort /etc/passwd /etc/passwd | uniq -c\n
+expect 30 #$
+saw ^ +2 root:x:0:0:root:/root:/usr/bin/bash$
+
+# Redirection, both ways.
+type echo redirected > /tmp/f; cat < /tmp/f\n
+expect 30 #$
+saw ^redirected$
+
+# The shell moves, and what it starts starts where it is: the two
+# directories of programs, found from inside /usr by a pattern.
+type cd /usr && pwd && ls -d *bin | wc -l\n
+expect 30 ^root@quark:/usr#$
+saw ^/usr$
+saw ^2$
+
+# A loop, redirected as a whole.
+type for i in 1 2 3; do echo line $i; done > /tmp/g; wc -l < /tmp/g; tail -1 /tmp/g\n
+expect 30 #$
+saw ^3$
+saw ^line 3$
+
+# Whose programs these are.
+type cd; type cp cd; ls --version | head -1; bash --version | head -1\n
+expect 30 ^root@quark:~#$
+saw ^cp is (hashed \()?/usr/bin/cp\)?$
+saw ^cd is a shell builtin$
+saw ^ls \(GNU coreutils\) 9\.11$
+saw ^GNU bash, version 5\.3
+
+# Ctrl-C ends what is running, and the shell says how it ended.
+type sleep 100\n
+sleep 2
+key ctrl+c
+expect 20 #$
+type echo interrupted $?\n
+expect 20 #$
+saw ^interrupted 130$
+
+# A command run after a background job is still waited for: each number below
+# is printed by a program started after the last one ended.
+type sleep 1 & wait; date +%s > /tmp/t1; sleep 2; date +%s > /tmp/t2; echo took $(( $(cat /tmp/t2) - $(cat /tmp/t1) ))\n
+expect 30 #$
+saw ^took [23]$
+
+# A pipe whose reader has had enough ends its writer.
+type yes | head -2 | wc -l\n
+expect 30 #$
+
+# The session is on a terminal, and the terminal has a name.
+type tty\n
+expect 30 #$
+saw ^/dev/pts/0$
+
+# A command given a second is ended after one, and the shell is told so.
+type timeout 1 sleep 5; echo "timed out $?"\n
+expect 30 #$
+saw ^timed out 124$
+
+# And the rest, by the system itself: ninety-odd small things with known
+# answers, each done by bash or by one of the coreutils.
+type bash /usr/share/gnu-quark/selftest\n
+expect 300 #$
+saw ^selftest: \d+ passed, 0 failed$
+
+# Ctrl-D at the prompt logs out, and there is a login prompt again.
+key ctrl+d
+expect 30 ^login:$
+type root\n
+expect 30 ^root@quark:~#$
+
+# What is left running is the system and this shell, and nothing forgotten.
+type ps\n
+expect 30 #$
+transcript build/acceptance.txt
+
+# And it turns itself off.
+type shutdown\n
+off 30
