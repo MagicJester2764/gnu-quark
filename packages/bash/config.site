@@ -1,0 +1,31 @@
+# What bash's configure finds out by running a program, answered for Quark.
+#
+# It cannot run a Quark program on the machine it is building on, so for each
+# of these it would take a default — and the defaults are for a system it
+# knows nothing about. Most are right. These are the ones that are not, each
+# with what goes wrong if it is left.
+
+# Where in a wait status the exit status is. The default is 0, where the
+# signal number is: every command would have "succeeded".
+bash_cv_wexitstatus_offset=8
+
+# getcwd(NULL, 0) allocates what it returns. Told otherwise, bash uses its own
+# getcwd, which finds its way up by comparing inode numbers.
+bash_cv_getcwd_malloc=yes
+
+# sbrk(0) answers; sbrk(n) does not allocate. Only bash's own malloc would
+# care, and that is not used.
+bash_cv_func_sbrk=no
+
+# The C library's own versions of these work, so bash need not bring its own.
+bash_cv_printf_a_format=yes
+bash_cv_func_strchrnul_works=yes
+ac_cv_func_strcoll_works=yes
+ac_cv_func_working_mktime=yes
+ac_cv_func_chown_works=yes
+
+# /dev/fd/N and /dev/stdin open as the descriptor they name, which is what
+# <(command) is made of. There are no named pipes to make it of instead.
+bash_cv_dev_fd=standard
+bash_cv_dev_stdin=present
+bash_cv_sys_named_pipes=missing

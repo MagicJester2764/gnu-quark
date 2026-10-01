@@ -1,0 +1,15 @@
+# What GNU/Quark is built from besides Quark: one package a line.
+#
+#   name  version  sha256  url
+#
+# The checksum is of the file the url names, and is the one this was built
+# and tested with: a mirror serving something else stops the build before it
+# starts. A package's recipe is packages/<name>/build.sh.
+#
+# Each tarball's signature (<url>.sig) was checked against the GNU keyring
+# (https://ftp.gnu.org/gnu/gnu-keyring.gpg) before its checksum was written
+# here:
+#   bash 5.3        Chet Ramey     7C0135FB088AAF6C66C650B9BB5869F064EA74AB
+#   coreutils 9.11  Pádraig Brady  6C37DC12121A5006BC1DB804DF6FD971306037D9
+bash       5.3   0d5cd86965f869a26cf64f4b71be7b96f90a3ba8b3d74e27e8e9d9d5550f31ba  https://ftp.gnu.org/gnu/bash/bash-5.3.tar.gz
+coreutils  9.11  394024eda0a5955217ceda9cd1201e65dc8fa3aa29c2951135a49521d57c3cc3  https://ftp.gnu.org/gnu/coreutils/coreutils-9.11.tar.xz
