@@ -10,7 +10,8 @@
 # Nothing in bash is patched. What it needs to be told is said the way it is
 # meant to be told:
 #
-#   - config.site answers the questions configure asks by running a program.
+#   - config.site, beside this, answers the questions configure asks by
+#     running a program.
 #   - Not bash's own malloc, which wants an sbrk that allocates.
 #   - Static, as every program here is.
 #   - NEED_EXTERN_PC: readline and the termcap beside it each define the
@@ -22,7 +23,7 @@
 . "$(dirname "$0")/../../tools/recipe.sh"
 
 teach support/config.sub
-configured || CONFIG_SITE="$HERE/config.site" "$SRC/configure" $HOST \
+configured || "$SRC/configure" $HOST \
     CPPFLAGS=-DNEED_EXTERN_PC \
     --without-bash-malloc \
     --disable-nls \

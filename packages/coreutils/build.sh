@@ -16,8 +16,6 @@
 #   - No threads. `sort` would use them, and sorts as well without.
 #   - Not stdbuf, which works by loading a shared library into another
 #     program, and there are none.
-#   - musl.mk, for the one file that cannot compile without being told which
-#     C library it has. It says why.
 . "$(dirname "$0")/../../tools/recipe.sh"
 
 teach build-aux/config.sub
@@ -25,7 +23,7 @@ configured || "$SRC/configure" $HOST \
     --disable-nls --disable-acl --disable-xattr --disable-libcap \
     --disable-threads --without-selinux --without-openssl \
     --enable-no-install-program=stdbuf
-MAKEFILES="$HERE/musl.mk" make -j"${JOBS:-$(nproc)}"
+make -j"${JOBS:-$(nproc)}"
 
 # The programs, and only the programs: an install also brings manuals, and a
 # build tree also holds helpers built for the machine it was built on. What

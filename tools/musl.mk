@@ -1,4 +1,5 @@
-# Read by make before coreutils' own Makefile (through MAKEFILES).
+# Read by make before a package's own Makefile (through MAKEFILES), for every
+# package built with tools/recipe.sh.
 #
 # One file in gnulib, getlocalename_l-unsafe.c, has to reach inside the C
 # library for the name of a locale, and so asks which C library it has. It
@@ -11,6 +12,9 @@
 # it is on Linux. Nothing else is: every other file that asks gets the truth
 # and takes the path that asks nothing of a particular kernel.
 #
-# The object's name is written out: this is read before the Makefile that
-# says what an object file is called.
-lib/libcoreutils_a-getlocalename_l-unsafe.o: CFLAGS += -D__linux__
+# gnulib is copied into each package, and each builds the object under a name
+# of its own — bare in a directory of tests, or with its library's name in
+# front. Both shapes are named: this is read before the Makefile that says
+# what an object file is called.
+getlocalename_l-unsafe.o: CFLAGS += -D__linux__
+%-getlocalename_l-unsafe.o: CFLAGS += -D__linux__

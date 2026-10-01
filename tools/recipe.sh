@@ -22,6 +22,11 @@
 #     config.site — is decided once for a build directory. A recipe that has
 #     changed since then is one whose changes are not in what it builds.
 #     `make distclean`, and it is configured again.
+#
+# Two files beside this one are every recipe's too. `config.site` answers
+# what configure would find out by running a program, where the answer is
+# Quark's and not one package's; a package's own config.site, if it has one,
+# is read after it. `musl.mk` is read by every make a recipe runs.
 set -e
 SRC=${1:?usage: build.sh <source> <build-dir> <dest-dir>}
 OBJ=${2:?usage: build.sh <source> <build-dir> <dest-dir>}
@@ -37,7 +42,7 @@ DEST=$(cd "$DEST" && pwd)
 cd "$OBJ"
 
 LIBC=$(sh "$TOOLS/libc-stamp.sh")
-RECIPE=$(cat "$HERE"/* "$TOOLS/recipe.sh" | sha256sum | cut -d' ' -f1)
+RECIPE=$(cat "$HERE"/* "$TOOLS/recipe.sh" "$TOOLS/config.site" "$TOOLS/musl.mk" | sha256sum | cut -d' ' -f1)
 if [ -f Makefile ] && [ "$(cat recipe.stamp 2>/dev/null)" != "$RECIPE" ]; then
     echo "$NAME: its recipe has changed; configuring again"
     make distclean >/dev/null 2>&1 || true
@@ -67,12 +72,26 @@ configured() {
 # installed under /usr.
 HOST="--host=x86_64-quark --prefix=/usr CC=x86_64-quark-musl-gcc"
 
-# install_programs <file>...: into the image's /usr/bin, stripped. An
-# unstripped program is three times the size, and the root is not large.
+# What configure is told without being asked, and what make reads first.
+CONFIG_SITE=$TOOLS/config.site
+[ -f "$HERE/config.site" ] && CONFIG_SITE="$CONFIG_SITE $HERE/config.site"
+MAKEFILES=$TOOLS/musl.mk
+export CONFIG_SITE MAKEFILES
+
+# install_programs <file>...: into the image's /usr/bin. A program is
+# stripped — an unstripped one is three times the size, and the root is not
+# large. A script is not a program to the linker and is copied as it is, and
+# a link stays a link.
 install_programs() {
     for _program in "$@"; do
+        if [ -L "$_program" ]; then
+            cp -P "$_program" "$DEST/usr/bin/"
+            continue
+        fi
         cp "$_program" "$DEST/usr/bin/"
-        x86_64-quark-strip "$DEST/usr/bin/$(basename "$_program")"
+        if [ "$(head -c 4 "$_program" | od -An -tx1 | tr -d ' ')" = 7f454c46 ]; then
+            x86_64-quark-strip "$DEST/usr/bin/$(basename "$_program")"
+        fi
     done
 }
 
@@ -81,9 +100,10 @@ install_programs() {
 install_staged() {
     _count=0
     for _program in "$1"/*; do
-        [ -f "$_program" ] && [ -x "$_program" ] || continue
-        install_programs "$_program"
-        _count=$((_count + 1))
+        if [ -L "$_program" ] || { [ -f "$_program" ] && [ -x "$_program" ]; }; then
+            install_programs "$_program"
+            _count=$((_count + 1))
+        fi
     done
     echo "$NAME: $_count programs in $DEST/usr/bin"
 }

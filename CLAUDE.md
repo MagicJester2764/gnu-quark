@@ -116,8 +116,25 @@ it does are there because nothing in a package's own Makefile can know them:
   told is decided once for a build directory, so an answer added to a
   `config.site`, or a flag taken out, did nothing until the directory was
   thrown away: bash went on believing there were no named pipes after the
-  line that said so was changed. The checksum is of the package's directory
-  and of `recipe.sh` itself.
+  line that said so was changed. The checksum is of the package's directory,
+  of `recipe.sh` itself, and of the two files below.
+
+Two more files are every recipe's, and are where to look first when a new
+package does not configure or compile:
+
+- **`tools/config.site`** answers what `configure` would find out by running
+  a program. gnulib has a guess for most of those when it is cross-compiling
+  and uses it; where it has one and stops anyway, or the guess is wrong for
+  musl, the answer goes here with the reason. An answer only one package
+  asks for goes in `packages/<name>/config.site`, which is read after it.
+- **`tools/musl.mk`** is read by every `make` a recipe runs. gnulib is
+  copied into each package, and one file of it has to be told which C
+  library it is compiled against.
+
+A package written before C23 may say so by not compiling: `getenv ()`
+declared with no prototype is a function of no arguments now. The fix is the
+flag that names the language (`CFLAGS=-std=gnu17`, as make's recipe has),
+not a change to the source.
 
 And it strips what it installs: an unstripped coreutils is three times the
 size, and the root is 160 MiB.

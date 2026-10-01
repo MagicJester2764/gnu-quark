@@ -1,0 +1,14 @@
+# What configure finds out by running a program, answered for Quark, for
+# every package built with tools/recipe.sh.
+#
+# It cannot run a Quark program on the machine it is building on, so for
+# each of these it takes a default — or, here and there, gives up. An answer
+# belongs in this file when it is true of Quark whoever is asking; one that
+# is about a single package is in that package's own config.site, which is
+# read after this.
+
+# gnulib asks whether strcasecmp agrees with tolower in a French ISO 8859-1
+# locale, and has a guess for a cross build that it then does not use: it
+# stops. musl has no such locale — every one it has is UTF-8 — so the test,
+# run here, finds nothing to disagree about.
+gl_cv_func_strcasecmp_works=yes
