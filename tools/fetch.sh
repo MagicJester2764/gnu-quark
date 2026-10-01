@@ -27,9 +27,9 @@ if [ -z "$line" ]; then
     exit 1
 fi
 set -- $line
-version=$2
-sum=$3
-url=$4
+version=$3
+sum=$4
+url=$5
 tarball=$SRC/$(basename "$url")
 dir=$BUILD/src/$NAME-$version
 

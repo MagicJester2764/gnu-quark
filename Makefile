@@ -18,7 +18,22 @@ BANG_DIR       ?= ../bang
 # The firmware lives in Bang because that is what needs it to exist.
 OVMF_PATH ?= $(BANG_DIR)/firmware-redist/ovmf
 
-PACKAGES := bash coreutils unifont
+# What an image is made of is said in packages/PACKAGES: every package
+# marked `base`, and of those marked `optional` the ones EXTRA names.
+#
+#     make EXTRA="make"
+#
+# The line that makes the list is read where this file is, whatever
+# directory make was started in.
+EXTRA    ?=
+LISTED    = $(shell awk 'substr($$0, 1, 1) != "\043" && $$2 == "$(1)" { print $$1 }' $(dir $(lastword $(MAKEFILE_LIST)))packages/PACKAGES)
+BASE     := $(call LISTED,base)
+OPTIONAL := $(call LISTED,optional)
+UNKNOWN  := $(filter-out $(OPTIONAL),$(EXTRA))
+ifneq ($(UNKNOWN),)
+$(error no optional package called $(UNKNOWN): there is $(OPTIONAL))
+endif
+PACKAGES := $(BASE) $(EXTRA)
 
 # Where this file is, and so where everything it makes goes — whatever
 # directory make was started in. The two things below that are removed are

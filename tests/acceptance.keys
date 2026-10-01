@@ -45,6 +45,21 @@ expect 30 #$
 saw ^p$
 saw ^met by name$
 
+# The rest of what a GNU system has before anything is installed: finding
+# things, changing text, comparing, putting away.
+type echo "$(grep -c bash /etc/passwd) shell, $(find /usr/bin -name 'g*' | wc -l) programs beginning with g"\n
+expect 30 #$
+saw ^1 shell, \d+ programs beginning with g$
+type awk -F: '{ print $1 " logs in to " $7 }' /etc/passwd | sed 's/usr.bin.//'\n
+expect 30 #$
+saw ^root logs in to /bash$
+type tar czf /tmp/etc.tgz -C / etc && tar tzf /tmp/etc.tgz | grep -c . | sed 's/$/ names put away/'\n
+expect 60 #$
+saw ^\d+ names put away$
+type diff <(ls /bin) <(ls /usr/bin) && echo the same programs by either name\n
+expect 30 #$
+saw ^the same programs by either name$
+
 # The shell moves, and what it starts starts where it is: the two
 # directories of programs, found from inside /usr by a pattern.
 type cd /usr && pwd && ls -d *bin | wc -l\n

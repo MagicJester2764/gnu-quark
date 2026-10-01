@@ -2,8 +2,9 @@
 
 The [Quark](https://github.com/MagicJester2764/quark) kernel with GNU on top
 of it. It boots to a login prompt on a terminal, the shell is GNU bash, and
-`ls`, `cp`, `sort` and the rest are GNU coreutils — the programs GNU ships,
-built from the tarballs GNU publishes, with nothing in them changed.
+`ls`, `grep`, `sed`, `awk`, `find`, `tar` and the rest are GNU's — the
+programs GNU ships, built from the tarballs GNU publishes, with nothing in
+them changed.
 
 ```
 login: root
@@ -21,15 +22,22 @@ drwxr-xr-x 5 root root  1024 Oct  1 15:57 usr
 drwxr-xr-x 2 root root  1024 Oct  1 17:15 var
 root@quark:~# sort /etc/passwd /etc/passwd | uniq -c
       2 root:x:0:0:root:/root:/usr/bin/bash
+root@quark:~# awk -F: '{ print $1 " logs in to " $7 }' /etc/passwd
+root logs in to /usr/bin/bash
 root@quark:~# du -sh /usr
-21M     /usr
-root@quark:~# timeout 1 sleep 5; echo $?
-124
+34M     /usr
+root@quark:~# sleep 100
+^Z
+[1]+  Stopped                    sleep 100
+root@quark:~# bg; sleep 1; jobs
+[1]+ sleep 100 &
+[1]+  Running                    sleep 100 &
 ```
 
-It is a first cut: a shell and the coreutils, on a kernel that is its own.
-The rest of a GNU userland — grep, sed, gawk, findutils, diffutils, tar,
-gzip, make — is a package each, and none of them is here yet.
+It is what a GNU system has before anybody has installed anything: a shell,
+the coreutils, grep, sed, awk, find, diff, tar and gzip, on a kernel that is
+its own. What comes after that is a package an image is built with when it
+is asked for, and so far there is one: make.
 
 ## What is in it
 
@@ -39,7 +47,8 @@ gzip, make — is a package each, and none of them is here yet.
 | The bootloader | [Bang](https://github.com/MagicJester2764/bang), UEFI |
 | What makes a kernel a system | from [quarkutils](https://github.com/MagicJester2764/quarkutils): `init`, the name server, the console, the keyboard and disk drivers, the input server, the file server — and five programs: `getty`, `login`, `ps`, `shutdown`, `setfont` |
 | The shell | GNU bash 5.3, also `/bin/sh` |
-| The programs | GNU coreutils 9.11: 101 of them |
+| The programs | GNU coreutils 9.11, 101 of them; grep 3.12; sed 4.10; gawk 5.4.1, also `awk`; findutils 4.11.0, which is `find` and `xargs`; diffutils 3.12; tar 1.35; gzip 1.15 |
+| If asked for | GNU make 4.4.1: `make EXTRA="make"` |
 | The console's font | GNU Unifont 18.0.01 |
 
 Quark is a microkernel, so the filesystem, the console and the drivers are
@@ -75,9 +84,17 @@ export PATH="$HOME/.local/bin:$HOME/opt/cross/bin:$PATH"
 make          # build everything and assemble gnu-quark.img
 make run      # boot it in QEMU
 make test     # boot it, type the acceptance test at it, check what it said
+
+make EXTRA="make"    # the same image, with GNU make in it
 ```
 
-The first `make` fetches bash and coreutils from ftp.gnu.org into
+`packages/PACKAGES` says what an image is made of. A package marked `base`
+there is in every image. One marked `optional` is in an image built with
+its name in `EXTRA`, which is as near as this comes to installing something:
+there is no package manager, and what an image has is decided when it is
+built.
+
+The first `make` fetches each package from ftp.gnu.org into
 `~/opt/src` (or `$GNU_QUARK_SRC`) and checks each against the SHA-256 in
 `packages/PACKAGES` before unpacking it; the checksums there are of tarballs
 whose signatures were checked against the GNU keyring. Nothing is built as root, and
@@ -96,18 +113,25 @@ its `config.sub`, to say that `quark` is the name of an operating system —
 upstream's list has not got it. Everything else is said the way the package
 means to be told:
 
-- `packages/bash/config.site` answers the questions bash's `configure` asks
-  by running a program, which it cannot do when the program is for another
-  machine. Each answer is a fact about Quark's C library, with what goes
-  wrong if it is left to the default.
-- `packages/coreutils/musl.mk` gives one file of gnulib the one macro it
-  needs to compile, through `MAKEFILES`. It says which and why.
+- `tools/config.site` answers the questions a `configure` asks by running
+  a program, which it cannot do when the program is for another machine.
+  Each answer is a fact about Quark's C library, with what goes wrong if it
+  is left to the default. `packages/bash/config.site` has the ones only
+  bash asks.
+- `tools/musl.mk` gives one file of gnulib, which most of these packages
+  carry a copy of, the one macro it needs to compile, through `MAKEFILES`.
+  It says which and why.
+- A recipe passes `configure` the flags the package has for what Quark has
+  not got — no translations, no ACLs, no shared libraries to load — and for
+  make, which is written in the C of before 2023, the flag that says so.
 
-When a package needed something Quark had not got, Quark grew it. bash and
-coreutils between them asked for files that are kernel descriptors, so that
+When a package needed something Quark had not got, Quark grew it. Between
+them these programs asked for files that are kernel descriptors, so that
 `fork` copies them and `exec` keeps them; signals a program can handle; a
 terminal with a line discipline; process ids that are not handed to the next
-program the moment one ends; an alarm; and to be told when a child ends.
+program the moment one ends; an alarm, and to be told when a child ends; a
+console that draws UTF-8; named pipes; process groups, sessions and jobs
+that stop; and `posix_spawn`, which is how make starts everything it runs.
 Those are in the kernel and its C library now, each with a test.
 
 Every program is static. There is no dynamic loader and no shared library,
@@ -147,8 +171,9 @@ Ctrl-D and a second login, and `shutdown`. Each command has to have printed
 what it should. Then it runs `e2fsck` on the root the test left behind.
 
 In the middle it runs `/usr/share/gnu-quark/selftest`, which is also there
-to be run by hand: ninety-odd small things whose answers are known, each
-done by bash or by one of the coreutils.
+to be run by hand: a hundred and fifty small things whose answers are known,
+each done by bash or by one of the programs in the image — and by make, in
+an image that has it.
 
 ## What does not work
 
@@ -169,6 +194,9 @@ done by bash or by one of the coreutils.
   something**, not in the middle of computing. Almost nothing notices.
 - **One user.** `/etc/passwd` has root in it. Users, and a program that
   cannot do everything the shell that started it can, are not here yet.
+- **`grep -P` is not there**: Perl's regular expressions are a library,
+  PCRE2, that nobody has made a package of. Nor are `locate` and `updatedb`,
+  which want something to run them each night.
 - **No network programs**, and no network service in the image.
 
 The kernel's own list is in Quark's `MISSING.md`, and the C library's under

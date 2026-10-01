@@ -87,11 +87,16 @@ What a recipe *may* do:
 
 ## Adding a package
 
-1. A line in `packages/PACKAGES`: name, version, SHA-256 of the tarball,
-   URL. The checksum is what the build trusts from then on, so it is taken
-   from a tarball whose signature has been checked — `gpgv --keyring
+1. A line in `packages/PACKAGES`: name, set, version, SHA-256 of the
+   tarball, URL. The checksum is what the build trusts from then on, so it is
+   taken from a tarball whose signature has been checked — `gpgv --keyring
    gnu-keyring.gpg <tarball>.sig <tarball>`, with the keyring from
-   ftp.gnu.org — and the file says who signed it.
+   ftp.gnu.org — and the file says who signed it. The set is `base` for what
+   every image has and `optional` for what one has when it is built with the
+   name in `EXTRA`: the Makefile reads the list from this file and from
+   nowhere else. `base` is what a GNU system has before anybody installs
+   anything — what Debian marks required, what Arch calls `base` — and a
+   compiler's tools are not that.
 2. `packages/<name>/build.sh <source> <build-dir> <dest-dir>`. It configures
    out of tree in `<build-dir>`, and leaves in `<dest-dir>` what the image
    carries, laid out like the root (`usr/bin/...`). An autoconf package's
@@ -99,9 +104,10 @@ What a recipe *may* do:
    to say: where `config.sub` is (`teach`), what `configure` is told
    (`configured || "$SRC/configure" $HOST ...`), and which programs go in the
    image (`install_programs`, `install_staged`).
-3. The name in `PACKAGES :=` in the Makefile.
-4. Something in `rootfs/usr/share/gnu-quark/selftest`, and in
-   `tests/acceptance.keys` if a person would type it.
+3. Something in `rootfs/usr/share/gnu-quark/selftest`, and in
+   `tests/acceptance.keys` if a person would type it. An optional package's
+   checks are under `if command -v <program>`, and are run by building with
+   it: `make test EXTRA="<name>"`.
 
 `tools/recipe.sh` is what every recipe has in common, and two of the things
 it does are there because nothing in a package's own Makefile can know them:
@@ -148,7 +154,7 @@ A recipe never writes anywhere else in it than `config.sub`.
 programs from quarkutils **by name** — `getty`, `login`, `ps`, `shutdown`,
 and `setfont`, which is the console's own tool — and the console's
 `termcap`. A root with all of quarkutils' programs in it
-is not a GNU system. Before adding a fifth, ask whether GNU has the program:
+is not a GNU system. Before adding a sixth, ask whether GNU has the program:
 if it does, it is a package.
 
 `rootfs/` is copied over the top, and is the whole of what makes the image
@@ -227,5 +233,7 @@ pid twice; `timeout` waiting for ever was a SIGCHLD nobody raised.
   copies capabilities at a fork and keeps them across an exec, and nothing
   narrows them. With one user that is root it changes nothing yet.
 - `stdbuf` is not built: it works by loading a library into another program.
+  For the same reason gawk has no extensions and make no `load`.
+- `grep -P` wants PCRE2, and `locate` something to run `updatedb`.
 - Only `x86_64-quark-musl-gcc`'s static C programs: no C++ package has been
   tried here, and nothing links a shared library.

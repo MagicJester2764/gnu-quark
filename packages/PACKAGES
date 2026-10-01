@@ -1,6 +1,12 @@
 # What GNU/Quark is built from besides Quark: one package a line.
 #
-#   name  version  sha256  url
+#   name  set  version  sha256  url
+#
+# `set` says whether an image has it. `base` is in every image: it is what a
+# GNU system has before anybody has chosen anything. `optional` is in an
+# image that asks for it:
+#
+#     make EXTRA="make"
 #
 # The checksum is of the file the url names, and is the one this was built
 # and tested with: a mirror serving something else stops the build before it
@@ -9,9 +15,25 @@
 # Each tarball's signature (<url>.sig) was checked against the GNU keyring
 # (https://ftp.gnu.org/gnu/gnu-keyring.gpg) before its checksum was written
 # here:
-#   bash 5.3        Chet Ramey     7C0135FB088AAF6C66C650B9BB5869F064EA74AB
-#   coreutils 9.11  Pádraig Brady  6C37DC12121A5006BC1DB804DF6FD971306037D9
-#   unifont 18.0.01 Paul Hardy     95D2E9AB8740D8046387FD151A09227B1F435A33
-bash       5.3   0d5cd86965f869a26cf64f4b71be7b96f90a3ba8b3d74e27e8e9d9d5550f31ba  https://ftp.gnu.org/gnu/bash/bash-5.3.tar.gz
-coreutils  9.11  394024eda0a5955217ceda9cd1201e65dc8fa3aa29c2951135a49521d57c3cc3  https://ftp.gnu.org/gnu/coreutils/coreutils-9.11.tar.xz
-unifont    18.0.01  14c96e497466a82e46cf20032ce510e186bdc8658c9158e2290f452cda9bc498  https://ftp.gnu.org/gnu/unifont/unifont-18.0.01/unifont_all-18.0.01.hex.gz
+#   bash 5.3          Chet Ramey         7C0135FB088AAF6C66C650B9BB5869F064EA74AB
+#   coreutils 9.11    Pádraig Brady      6C37DC12121A5006BC1DB804DF6FD971306037D9
+#   grep 3.12         Jim Meyering       155D3FC500C834486D1EEA677FD9FCCB000BEEEE
+#   sed 4.10          Jim Meyering       155D3FC500C834486D1EEA677FD9FCCB000BEEEE
+#   gawk 5.4.1        Arnold Robbins     D1967C63788713177D861ED7DF597815937EC0D2
+#   findutils 4.11.0  James Youngman     0CF4E8D871593224842832B888DD9E08C5DDACB9
+#   diffutils 3.12    Jim Meyering       155D3FC500C834486D1EEA677FD9FCCB000BEEEE
+#   tar 1.35          Sergey Poznyakoff  325F650C4C2B6AD58807327A3602B07F55D0C732
+#   gzip 1.15         Jim Meyering       155D3FC500C834486D1EEA677FD9FCCB000BEEEE
+#   make 4.4.1        Paul D. Smith      B2508A90102F8AE3B12A0090DEACCAAEDB78137A
+#   unifont 18.0.01   Paul Hardy         95D2E9AB8740D8046387FD151A09227B1F435A33
+bash       base      5.3      0d5cd86965f869a26cf64f4b71be7b96f90a3ba8b3d74e27e8e9d9d5550f31ba  https://ftp.gnu.org/gnu/bash/bash-5.3.tar.gz
+coreutils  base      9.11     394024eda0a5955217ceda9cd1201e65dc8fa3aa29c2951135a49521d57c3cc3  https://ftp.gnu.org/gnu/coreutils/coreutils-9.11.tar.xz
+grep       base      3.12     2649b27c0e90e632eadcd757be06c6e9a4f48d941de51e7c0f83ff76408a07b9  https://ftp.gnu.org/gnu/grep/grep-3.12.tar.xz
+sed        base      4.10     b8e72182b2ec96a3574e2998c47b7aaa64cc20ce000d8e9ac313cc07cecf28c7  https://ftp.gnu.org/gnu/sed/sed-4.10.tar.xz
+gawk       base      5.4.1    07f6f7342b7febe4313fc2c2542ad93d64fe20ad8717200109f105a826f5fd37  https://ftp.gnu.org/gnu/gawk/gawk-5.4.1.tar.xz
+findutils  base      4.11.0   bfd19cb06cc71f3352d567e90284d8cdac02ac89774bbeadf0b533b0c11432fd  https://ftp.gnu.org/gnu/findutils/findutils-4.11.0.tar.xz
+diffutils  base      3.12     7c8b7f9fc8609141fdea9cece85249d308624391ff61dedaf528fcb337727dfd  https://ftp.gnu.org/gnu/diffutils/diffutils-3.12.tar.xz
+tar        base      1.35     4d62ff37342ec7aed748535323930c7cf94acf71c3591882b26a7ea50f3edc16  https://ftp.gnu.org/gnu/tar/tar-1.35.tar.xz
+gzip       base      1.15     9aa0cc780dec156b8282844833b342ab7cb08c25d2cd9a1869cdd0df31deff48  https://ftp.gnu.org/gnu/gzip/gzip-1.15.tar.xz
+unifont    base      18.0.01  14c96e497466a82e46cf20032ce510e186bdc8658c9158e2290f452cda9bc498  https://ftp.gnu.org/gnu/unifont/unifont-18.0.01/unifont_all-18.0.01.hex.gz
+make       optional  4.4.1    dd16fb1d67bfab79a72f5e8390735c49e3e8e70b4945a15ab1f81ddb78658fb3  https://ftp.gnu.org/gnu/make/make-4.4.1.tar.gz

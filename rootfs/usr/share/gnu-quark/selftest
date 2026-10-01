@@ -136,6 +136,69 @@ is "mknod p"       "$(test -p pipe2 && echo yes)"               "yes"
 rm pipe pipe2
 is "rm of one"     "$(test ! -e pipe && echo yes)"              "yes"
 
+# --- looking for things: grep, find -------------------------------------------------
+is "grep -c"       "$(printf 'a\nb\nab\n' | grep -c a)"         "2"
+is "grep -E"       "$(printf 'cat\ncot\ncut\n' | grep -E 'c[ao]t' | tr '\n' ' ')" "cat cot "
+is "grep -v, -n"   "$(printf 'x\ny\nx\n' | grep -vn x)"          "2:y"
+mkdir -p gr/sub && echo needle > gr/sub/hay && echo straw > gr/other
+is "grep -r"       "$(grep -rl needle gr)"                      "gr/sub/hay"
+is "grep, UTF-8"   "$(echo 'naïve café' | grep -o 'é')"         "é"
+is "grep -i"       "$(echo Quark | grep -ic QUARK)"             "1"
+is "egrep"         "$(echo abc | egrep -c 'b|x' 2> /dev/null)"  "1"
+mkdir -p fd/a/b && touch fd/a/b/x.c fd/a/y.h
+is "find -name"    "$(find fd -name '*.c')"                     "fd/a/b/x.c"
+is "find -type d"  "$(find fd -type d | sort | tr '\n' ' ')"    "fd fd/a fd/a/b "
+is "find -exec"    "$(find fd -name '*.h' -exec basename {} \;)" "y.h"
+is "find -size"    "$(find fd -type f -size 0 | wc -l)"         "2"
+is "find -maxdepth" "$(find fd -maxdepth 1 | wc -l)"            "2"
+is "xargs"         "$(printf 'a\nb\nc\n' | xargs echo)"         "a b c"
+is "find | xargs"  "$(find fd -type f -print0 | xargs -0 ls | wc -l)" "2"
+
+# --- changing text: sed, awk ------------------------------------------------------
+is "sed s///g"     "$(echo hello | sed 's/l/L/g')"              "heLLo"
+is "sed -n p"      "$(printf '1\n2\n3\n' | sed -n '2p')"        "2"
+is "sed -E"        "$(echo a1b22 | sed -E 's/[0-9]+/#/g')"      "a#b#"
+is "sed -i"        "$(echo old > sf; sed -i 's/old/new/' sf; cat sf)" "new"
+is "sed, a range"  "$(printf 'a\nb\nc\nd\n' | sed '2,3d' | tr '\n' ' ')" "a d "
+is "awk, a field"  "$(echo 'a b c' | awk '{print $2}')"         "b"
+is "awk, a sum"    "$(printf '1\n2\n3\n' | awk '{s += $1} END {print s}')" "6"
+is "awk -F"        "$(awk -F: '$3 == 0 {print $1}' /etc/passwd)" "root"
+is "awk, floating point" "$(awk 'BEGIN {printf "%.3f\n", 22/7}')" "3.143"
+is "awk, an array" "$(printf 'x\ny\nx\n' | awk '{n[$1]++} END {print n["x"] n["y"]}')" "21"
+is "awk, a function" "$(awk 'function sq(v) {return v*v} BEGIN {print sq(12), toupper("q"), length("café")}')" "144 Q 4"
+is "gawk"          "$(gawk --version | head -1 | cut -d, -f1)"   "GNU Awk 5.4.1"
+
+# --- comparing, and putting away: diff, tar, gzip ---------------------------------
+echo a > d1; cp d1 d2
+is "diff, the same" "$(diff d1 d2 && echo same)"                "same"
+echo b > d2
+is "diff -u"       "$(diff -u d1 d2 | grep -c '^[-+][ab]')"     "2"
+is "diff -r"       "$(diff -rq gr fd > /dev/null; echo $?)"     "1"
+is "cmp"           "$(cmp -s d1 d2; echo $?)"                   "1"
+chmod 640 fd/a/y.h; touch -d '2021-03-04 05:06:07' fd/a/y.h
+is "tar c, t"      "$(tar cf t.tar fd && tar tf t.tar | wc -l)" "5"
+mkdir tx
+is "tar x"         "$(tar xf t.tar -C tx && find tx -type f | wc -l)" "2"
+is "tar keeps modes and times" "$(stat -c '%a %Y' tx/fd/a/y.h)" "640 $(date -d '2021-03-04 05:06:07' +%s)"
+echo squeezed > gz
+is "gzip, gunzip"  "$(gzip gz && gunzip -c gz.gz)"              "squeezed"
+is "zcat"          "$(zcat gz.gz)"                              "squeezed"
+is "gzip -l"       "$(gzip -l gz.gz | tail -1 | awk '{print $2}')" "9"
+is "tar z"         "$(tar czf t.tgz fd && tar tzf t.tgz | wc -l)" "5"
+is "tar z, out again" "$(mkdir tz && tar xzf t.tgz -C tz && diff -r fd tz/fd && echo same)" "same"
+is "a big file, through gzip" "$(head -c 300000 /dev/zero | gzip | gunzip | wc -c)" "300000"
+
+# --- make, in an image that asked for it ---------------------------------------------
+if command -v make > /dev/null; then
+    mkdir mk && printf 'all: out\nout: in\n\tcp in out\nclean:\n\trm -f out\n' > mk/Makefile
+    echo made > mk/in
+    is "make"          "$(make -s -C mk && cat mk/out)"             "made"
+    is "make, done"    "$(make -q -C mk && echo nothing to do)"     "nothing to do"
+    is "make, again"   "$(sleep 1; echo changed > mk/in; make -s -C mk && cat mk/out)" "changed"
+    is "make -j"       "$(printf 'all: a b c\na b c:\n\t@echo $@ > $@\n' > mk/j.mk; make -s -j3 -C mk -f j.mk && cat mk/a mk/b mk/c | tr '\n' ' ')" "a b c "
+    is "make clean"    "$(make -s -C mk clean && test ! -e mk/out && echo gone)" "gone"
+fi
+
 # --- the shell ------------------------------------------------------------------
 is "arithmetic"    "$((2 ** 10 + 7 % 4))"                       "1027"
 is "arrays"        "$(a=(x y z); echo ${#a[@]} ${a[1]})"        "3 y"
