@@ -1,0 +1,7 @@
+# Everything a build makes: the staged kernel and userland, the unpacked
+# sources and what was built from them, the root, and the images.
+/build/
+/gnu-quark.img
+
+# What Python leaves beside the tools it imports.
+__pycache__/

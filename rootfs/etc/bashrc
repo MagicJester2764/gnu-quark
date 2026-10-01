@@ -1,0 +1,7 @@
+# /etc/bashrc: what an interactive bash is like here. Read from /etc/profile
+# by a login shell, and from ~/.bashrc by any other.
+
+PS1='\u@\h:\w\$ '
+
+# GNU ls colours what it lists when it is listing to a terminal.
+alias ls='ls --color=auto'

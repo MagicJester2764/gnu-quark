@@ -1,0 +1,9 @@
+# /etc/profile: read by a login shell.
+
+export PATH=/usr/local/bin:/usr/bin:/usr/sbin
+umask 022
+
+# The rest is for a shell somebody is typing at.
+case $- in
+*i*) [ -r /etc/bashrc ] && . /etc/bashrc ;;
+esac
