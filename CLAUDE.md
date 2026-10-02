@@ -133,6 +133,12 @@ package does not configure or compile:
   and uses it; where it has one and stops anyway, or the guess is wrong for
   musl, the answer goes here with the reason. An answer only one package
   asks for goes in `packages/<name>/config.site`, which is read after it.
+  A guess that is wrong does not fail, it compiles: gnulib guessed that an
+  unknown system's `getgroups` does not work and built in one of its own
+  that only fails, so `id` showed a user in one group while `cat` read a
+  file only the user's second group could. When a GNU program disagrees
+  with the kernel about a fact, look in the package's `config.h` for what
+  configure decided before looking anywhere else.
 - **`tools/musl.mk`** is read by every `make` a recipe runs. gnulib is
   copied into each package, and one file of it has to be told which C
   library it is compiled against.

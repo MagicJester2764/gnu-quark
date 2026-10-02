@@ -12,3 +12,12 @@
 # stops. musl has no such locale — every one it has is UTF-8 — so the test,
 # run here, finds nothing to disagree about.
 gl_cv_func_strcasecmp_works=yes
+
+# Whether `getgroups` works — whether it says how many groups a process is
+# in when asked with no room to write them — is found out by running a
+# program. It does: a process is in the groups its account was put in, and
+# says so. Left to guess, gnulib takes a system it has not heard of for one
+# with no groups at all, and compiles in a `getgroups` of its own that only
+# fails: `id` showed a user in one group whatever the kernel thought, while
+# `cat` read a file that only one of the user's other groups could.
+ac_cv_func_getgroups_works=yes
