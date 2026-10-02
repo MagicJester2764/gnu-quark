@@ -165,6 +165,9 @@ saw ^selftest: \d+ passed, 0 failed$
 # Unix's files, puts it in a group, and gives it and root passwords.
 type useradd -m -c Ada ada && groupadd staff && gpasswd -a ada staff\n
 expect 30 #$
+# And a second, whose files are to be the second's and not the first's.
+type useradd -m bob && echo for bob alone > /home/bob/notes && chown bob:bob /home/bob/notes\n
+expect 30 #$
 type passwd ada\n
 expect 30 ^New password:$
 type what ada types\n
@@ -230,6 +233,11 @@ type stat -c '%n is %U, mode %a' /root /etc/shadow\n
 expect 30 \$$
 saw ^/root is root, mode 700$
 saw ^/etc/shadow is root, mode 600$
+# Nor is another user's home this one's, any more than root's is.
+type ls /home/bob; cat /home/bob/notes\n
+expect 30 \$$
+saw ^ls: cannot open directory '/home/bob': Permission denied$
+saw ^cat: /home/bob/notes: Permission denied$
 
 # Becoming root takes root's password, and then it is root.
 type su -\n
@@ -252,7 +260,7 @@ type root\n
 expect 30 ^Password:$
 type what root types\n
 expect 30 ^root@quark:~#$
-type userdel ada; id ada; echo "its home is left: $(ls -d /home/ada)"\n
+type userdel ada; userdel bob; id ada; echo "its home is left: $(ls -d /home/ada)"\n
 expect 30 #$
 saw ^id: .ada.: no such user
 saw ^its home is left: /home/ada$
