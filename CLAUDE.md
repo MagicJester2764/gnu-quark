@@ -156,16 +156,29 @@ A recipe never writes anywhere else in it than `config.sub`.
 
 ## What goes in the root
 
-`tools/mkroot.sh` is where the distribution is decided. It takes five
+`tools/mkroot.sh` is where the distribution is decided. It takes eleven
 programs from quarkutils **by name** — `getty`, `login`, `ps`, `shutdown`,
-and `setfont`, which is the console's own tool — and the console's
-`termcap`. A root with all of quarkutils' programs in it
-is not a GNU system. Before adding a sixth, ask whether GNU has the program:
-if it does, it is a package.
+`setfont`, which is the console's own tool, and the six that make and become
+users (`su`, `passwd`, `useradd`, `userdel`, `groupadd`, `gpasswd`) — and
+the console's `termcap`. A root with all of quarkutils' programs in it
+is not a GNU system. Before adding a twelfth, ask whether GNU has the
+program: if it does, it is a package. (GNU has `id`, `whoami` and `chown`.
+It has nothing that makes a user or checks a password.)
 
 `rootfs/` is copied over the top, and is the whole of what makes the image
-this system rather than a pile of programs: `passwd`, `group`, `init.conf`
-(the session is `getty`), `profile` and `bashrc`, `os-release`, `mtab`.
+this system rather than a pile of programs: `passwd`, `group`, `shadow`,
+`init.conf` (the session is `getty`), `profile` and `bashrc`, `os-release`,
+`mtab`.
+
+- **Users are Unix's here.** `/etc/passwd`, `/etc/group` and `/etc/shadow`
+  in the forms every C program reads; no `/etc/rights`, so the rule
+  quarkutils' `auth` applies is the plain one: user 0's sessions hold
+  everything and nobody else's hold anything. `mkroot.sh` makes every file
+  in `/etc` 0644 and then `shadow` 0600 — in that order, or the passwords
+  are everybody's to read.
+- **`auth` is a boot service**, in `tools/mkimage.sh`'s list. `login`, `su`
+  and `passwd` hold nothing and ask it; without it nobody logs in at all,
+  which is how it was found to be missing from the list.
 
 - `/usr` is the system; `/bin` and `/sbin` are links into it, and `/bin/sh`
   is bash.
@@ -192,7 +205,7 @@ the inode, and `> file` does exactly that.
 
 `boot.img` on the EFI partition holds the services `init` starts before
 there is a root to read: the name server, the framebuffer, the console, the
-keyboard, the disk, input and the file server. Not the network stack: there
+keyboard, the disk, input, the file server and `auth`. Not the network stack: there
 is nothing in the root to use it.
 
 ## Testing
@@ -219,6 +232,13 @@ image, of small commands with known answers. It runs on any GNU system — try
 a new check on the host first, where a wrong expectation is the test's fault
 and takes a second to find.
 
+- **A `saw` is satisfied by anything the console has ever shown.** A check
+  that a second command printed what a first already had is no check: make
+  the second say something of its own (`echo "its home is left: $(...)"`).
+- **A password is typed at `New password:` and `Again:`**, which are prompts
+  like any other to `expect`; nothing typed there is shown, so nothing of
+  it can be `saw`n.
+
 When something hangs or prints the wrong thing, the fault is almost never in
 the package. Reduce it to a few lines of C, built with
 `x86_64-quark-musl-gcc`, and it becomes a test in `../quarkutils/ctests`
@@ -237,7 +257,10 @@ pid twice; `timeout` waiting for ever was a SIGCHLD nobody raised.
 - **No combining characters** on the console, and one keyboard layout.
 - **A program run by the shell holds what the shell holds.** The kernel
   copies capabilities at a fork and keeps them across an exec, and nothing
-  narrows them. With one user that is root it changes nothing yet.
+  narrows them. A user's shell holds none, so there is nothing to narrow;
+  root's holds all of them, and so does everything root runs.
+- **No `sudo`, `usermod`, `groupdel`, `chsh` or `newgrp`.** `su` is the one
+  way to be somebody else.
 - `stdbuf` is not built: it works by loading a library into another program.
   For the same reason gawk has no extensions and make no `load`.
 - `grep -P` wants PCRE2, and `locate` something to run `updatedb`.

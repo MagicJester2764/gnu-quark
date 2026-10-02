@@ -161,11 +161,101 @@ type bash /usr/share/gnu-quark/selftest\n
 expect 300 #$
 saw ^selftest: \d+ passed, 0 failed$
 
-# Ctrl-D at the prompt logs out, and there is a login prompt again.
+# More than one user. Root makes one with Unix's commands, which write
+# Unix's files, puts it in a group, and gives it and root passwords.
+type useradd -m -c Ada ada && groupadd staff && gpasswd -a ada staff\n
+expect 30 #$
+type passwd ada\n
+expect 30 ^New password:$
+type what ada types\n
+expect 30 ^Again:$
+type what ada types\n
+expect 30 #$
+saw ^passwd: changed$
+type passwd\n
+expect 30 ^New password:$
+type what root types\n
+expect 30 ^Again:$
+type what root types\n
+expect 30 #$
+type echo "$(grep -c '^ada:x:1000:1000:Ada:/home/ada:/usr/bin/bash$' /etc/passwd) account, $(grep -c '^ada:[$]6[$]' /etc/shadow) hashed password"\n
+expect 30 #$
+saw ^1 account, 1 hashed password$
+type ls -ld /home/ada /etc/shadow\n
+expect 30 #$
+saw ^drwx------ +\d+ ada +ada +\d+ .* /home/ada$
+saw ^-rw------- +1 root root +\d+ .* /etc/shadow$
+
+# What is root's is root's. A user reads neither root's files nor the
+# passwords, and is in the groups it was put in: a file of one of them opens.
+type echo for root alone > /root/secret; echo for the staff > /tmp/staff; chgrp staff /tmp/staff; chmod 640 /tmp/staff\n
+expect 30 #$
+type su ada -c 'id; cat /root/secret /etc/shadow; cat /tmp/staff'\n
+expect 30 #$
+saw ^uid=1000\(ada\) gid=1000\(ada\) groups=1000\(ada\),1001\(staff\)$
+saw ^cat: /root/secret: Permission denied$
+saw ^cat: /etc/shadow: Permission denied$
+saw ^for the staff$
+
+# Ctrl-D at the prompt logs out, and there is a login prompt again. The user
+# logs in: not with a wrong password, and with the right one.
+key ctrl+d
+expect 30 ^login:$
+type ada\n
+expect 30 ^Password:$
+type not what ada types\n
+expect 30 ^login:$
+saw ^Login incorrect$
+type ada\n
+expect 30 ^Password:$
+type what ada types\n
+expect 30 ^ada@quark:~\$$
+type whoami; pwd; touch mine; ls -l mine\n
+expect 30 \$$
+saw ^ada$
+saw ^/home/ada$
+saw ^-rw-r--r-- +1 ada ada +0 .* mine$
+
+# A user, and held to it: not root's directory, not the accounts, not
+# somebody else's program, and not the machine's power.
+type ls /root; rm -f /etc/passwd; kill $PPID; shutdown\n
+expect 30 \$$
+saw ^ls: cannot open directory '/root': Permission denied$
+saw ^rm: cannot remove '/etc/passwd': Permission denied$
+saw kill: \(\d+\) - Operation not permitted$
+saw ^shutdown: this account may not turn the machine off$
+# What a file is, is not the file: a user is told whose a thing is and what
+# its mode is without being let into it.
+type stat -c '%n is %U, mode %a' /root /etc/shadow\n
+expect 30 \$$
+saw ^/root is root, mode 700$
+saw ^/etc/shadow is root, mode 600$
+
+# Becoming root takes root's password, and then it is root.
+type su -\n
+expect 30 ^Password:$
+type not what root types\n
+expect 30 \$$
+saw ^su: that is not root's password$
+type su -\n
+expect 30 ^Password:$
+type what root types\n
+expect 30 ^root@quark:~#$
+type echo "now user $(id -u), who may read $(wc -l < /etc/shadow) lines of passwords"; exit\n
+expect 30 ^ada@quark:~\$$
+saw ^now user 0, who may read 2 lines of passwords$
+
+# Root logs in, with its password now, and takes the user away again.
 key ctrl+d
 expect 30 ^login:$
 type root\n
+expect 30 ^Password:$
+type what root types\n
 expect 30 ^root@quark:~#$
+type userdel ada; id ada; echo "its home is left: $(ls -d /home/ada)"\n
+expect 30 #$
+saw ^id: .ada.: no such user
+saw ^its home is left: /home/ada$
 
 # What is left running is the system and this shell, and nothing forgotten.
 type ps\n
