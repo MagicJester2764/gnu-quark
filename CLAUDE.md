@@ -117,7 +117,11 @@ it does are there because nothing in a package's own Makefile can know them:
   of the library, its startup file and the Linux layer; the build directory
   keeps the one it was built against and is cleaned when it differs. Without
   it a fix to the layer is in the image's `ls` only if `ls` happened to be
-  rebuilt.
+  rebuilt. The layer it reads is the one the compiler's specs name — the
+  archive in quarkutils' own tree, which is what is linked — and not the
+  copy in the cross compiler's sysroot, which nothing here installs: it read
+  that one, and a layer built again and not installed was in every program
+  built afterwards and in none of the ones this decides about.
 - **It configures again when the recipe has changed.** What `configure` was
   told is decided once for a build directory, so an answer added to a
   `config.site`, or a flag taken out, did nothing until the directory was
