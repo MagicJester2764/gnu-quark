@@ -257,8 +257,6 @@ pid twice; `timeout` waiting for ever was a SIGCHLD nobody raised.
 
 ## Known gaps
 
-- **`stty tostop` does nothing**: a job is stopped for reading the terminal
-  from the background and never for writing to it.
 - **`chroot` is installed and refused**, and `mknod` makes a named pipe
   and nothing else. A named pipe is not opened `O_RDWR`, so `exec 3<>pipe`
   fails; `<(...)` is made of `/dev/fd`, which bash prefers when it has both.

@@ -248,6 +248,10 @@ is "PIPESTATUS"    "$(false | true | (exit 3); echo ${PIPESTATUS[*]})" "1 0 3"
 is "trap EXIT"     "$(bash -c 'trap "echo bye" EXIT')"          "bye"
 is "trap signal"   "$(bash -c 'trap "echo caught" USR1; kill -USR1 $$; echo after')" "caught
 after"
+# A loop that asks the kernel for nothing is interrupted all the same: the
+# signal's handler runs in the middle of it, and the trap at the next command.
+is "trap in a loop" "$(timeout 20 bash -c 'trap "echo caught; exit 3" USR1; (sleep 1; kill -USR1 $$) & while :; do :; done'; echo $?)" "caught
+3"
 is "SIGPIPE"       "$(yes | head -1)"                           "y"
 is "script file"   "$(printf '#!/usr/bin/bash\necho from a script $1\n' > s; chmod +x s; ./s arg)" "from a script arg"
 is "sh"            "$(sh -c 'echo $0')"                         "sh"

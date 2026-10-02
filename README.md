@@ -222,10 +222,6 @@ an image that has it.
 
 ## What does not work
 
-- **`stty tostop` does nothing.** There is job control — Ctrl-Z, `jobs`,
-  `fg`, `bg`, and a job that reads the terminal from the background is
-  stopped until it is brought forward — but one that *writes* from the
-  background is never stopped for it.
 - **No `chroot`**, and `mknod` makes a named pipe and nothing else: there
   are no device files to make. A named pipe cannot be opened for reading
   and writing at once (`exec 3<>pipe`).
@@ -235,8 +231,6 @@ an image that has it.
   what GNU Unifont has, in one cell or two; a mark that sits on the
   character before it has no cell of its own and is dropped. The keyboard
   types ASCII: there is one layout, and it is US.
-- **A signal handler runs when the program next asks the kernel for
-  something**, not in the middle of computing. Almost nothing notices.
 - **The date is UTC, and nothing keeps it right.** `TZ` works, being the C
   library's; there is no `/etc/localtime` and no time zone data to point it
   at, and nothing asks the network what time it is.
