@@ -131,6 +131,11 @@ somebody else's program or read a disk — not because a program checked a
 user id, but because the shell that started it had nothing of the kind to
 hand on.
 
+What somebody types is theirs as well. Each login is a session, the
+terminal is that session's, and a program left running by somebody who then
+logged out is refused it: the descriptor it kept answers `EIO`, and
+`/dev/pts/0` does not open.
+
 One thing is not Unix's, and cannot be seen from the prompt: **nothing is
 setuid**. `su` and `passwd` are ordinary programs that hold nothing; a
 program on Quark is loaded by whoever starts it, so there is no file whose
@@ -204,8 +209,9 @@ with an accent in it as the name and `wc -m` counts its characters.
 it, reading the screen back as text: a login, `ls -l --color`, `cp -a`,
 `du -sh`, a pipeline, redirection, Ctrl-C, a background job, a timeout; a
 user made, given a password, logged in as — not with a wrong one — refused
-root's files and the machine's power, and become root with `su`; and
-`shutdown`. Each command has to have printed what it should. Then it runs `e2fsck` on the root the test left behind.
+root's files, another user's and the machine's power, and become root with
+`su`; a program left behind at logout, refused the terminal when root logs
+in; and `shutdown`. Each command has to have printed what it should. Then it runs `e2fsck` on the root the test left behind.
 
 In the middle it runs `/usr/share/gnu-quark/selftest`, which is also there
 to be run by hand: a hundred and fifty small things whose answers are known,

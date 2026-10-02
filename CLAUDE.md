@@ -176,6 +176,10 @@ this system rather than a pile of programs: `passwd`, `group`, `shadow`,
   everything and nobody else's hold anything. `mkroot.sh` makes every file
   in `/etc` 0644 and then `shadow` 0600 — in that order, or the passwords
   are everybody's to read.
+- **Each login is a session**, and the terminal is that session's: `login`
+  begins one and ends with it, `getty` starts the next. The acceptance
+  leaves a program behind at a logout and has it try the terminal once root
+  has logged in. A shell's job control is inside the session, as before.
 - **`auth` is a boot service**, in `tools/mkimage.sh`'s list. `login`, `su`
   and `passwd` hold nothing and ask it; without it nobody logs in at all,
   which is how it was found to be missing from the list.

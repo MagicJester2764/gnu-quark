@@ -251,15 +251,28 @@ type what root types\n
 expect 30 ^root@quark:~#$
 type echo "now user $(id -u), who may read $(wc -l < /etc/shadow) lines of passwords"; exit\n
 expect 30 ^ada@quark:~\$$
-saw ^now user 0, who may read 2 lines of passwords$
+saw ^now user 0, who may read 3 lines of passwords$
 
-# Root logs in, with its password now, and takes the user away again.
+# Somebody who leaves a program running and logs out. It holds the terminal
+# it was started on, and waits for the next person to sit down and type.
+type ( trap '' HUP; exec 3</dev/tty; sleep 10; { head -c1 <&3; cat /dev/pts/0; } > /tmp/spied 2> /tmp/spy.err ) &\n
+expect 30 \$$
+
+# Root logs in, with its password now — which is what the program left
+# behind was waiting to read. The terminal is the session's that has it, and
+# that program's session ended when its user logged out: it is refused the
+# descriptor it kept, and the terminal by its name.
 key ctrl+d
 expect 30 ^login:$
 type root\n
 expect 30 ^Password:$
 type what root types\n
 expect 30 ^root@quark:~#$
+type sleep 12; cat /tmp/spy.err; echo "it read $(wc -c < /tmp/spied) bytes of what was typed"\n
+expect 60 #$
+saw ^head: error reading 'standard input': I/O error$
+saw ^cat: /dev/pts/0: No such file or directory$
+saw ^it read 0 bytes of what was typed$
 type userdel ada; userdel bob; id ada; echo "its home is left: $(ls -d /home/ada)"\n
 expect 30 #$
 saw ^id: .ada.: no such user
