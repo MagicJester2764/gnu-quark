@@ -128,9 +128,10 @@ is asked for none.
 
 Root is root: its shell holds every capability the system gives a session,
 and a user's holds none. So a user cannot turn the machine off, end
-somebody else's program or read a disk — not because a program checked a
-user id, but because the shell that started it had nothing of the kind to
-hand on.
+somebody else's program, set the date or read a disk — not because a
+program checked a user id, but because the shell that started it had
+nothing of the kind to hand on. Root's `date -s` sets the clock, and the
+date is still that after the machine has been off.
 
 What somebody types is theirs as well. Each login is a session, the
 terminal is that session's, and a program left running by somebody who then
@@ -236,6 +237,9 @@ an image that has it.
   types ASCII: there is one layout, and it is US.
 - **A signal handler runs when the program next asks the kernel for
   something**, not in the middle of computing. Almost nothing notices.
+- **The date is UTC, and nothing keeps it right.** `TZ` works, being the C
+  library's; there is no `/etc/localtime` and no time zone data to point it
+  at, and nothing asks the network what time it is.
 - **No `sudo`**, and nothing like it: a user becomes root with root's
   password (`su`) or not at all. Nor `usermod`, `groupdel`, `chsh`, `newgrp`
   or password ageing: an account is changed by removing it and making it

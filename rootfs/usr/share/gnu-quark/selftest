@@ -91,6 +91,21 @@ is "timeout, met"  "$(timeout 5 echo done; echo $?)"            "done
 0"
 is "read -t"       "$(read -t 1 x < <(sleep 2); echo $?)"       "142"
 is "sleep, timed"  "$(a=$(date +%s); sleep 2; echo $(( $(date +%s) - a >= 2 )))" "1"
+# A part of a second is a part of a second: not none of it, and not ten
+# times it.
+is "sleep 0.05"    "$(a=$(date +%s%N); sleep 0.05; b=$(date +%s%N); echo $(( b - a >= 50000000 && b - a < 500000000 )))" "1"
+is "timeout 0.3"   "$(a=$(date +%s%N); timeout 0.3 sleep 5; echo $? $(( $(date +%s%N) - a < 2000000000 )))" "124 1"
+# The date is set by who may, and whoever may not is told so. Set a day on
+# and set back: what is left of the difference is how long that took.
+now=$(date +%s)
+if [ "$(id -u)" = 0 ]; then
+    is "date -s"       "$(date -s @$((now + 86400)) > /dev/null && echo $(( $(date +%s) - now >= 86400 && $(date +%s) - now < 86460 )))" "1"
+    date -s @$(( $(date +%s) - 86400 )) > /dev/null
+    is "date -s, back" "$(echo $(( $(date +%s) - now >= 0 && $(date +%s) - now < 60 )))" "1"
+else
+    is "date -s"       "$(date -s @$((now + 86400)) 2>&1 | grep -c 'Operation not permitted')" "1"
+    is "date -s, back" "$(echo $(( $(date +%s) - now >= 0 && $(date +%s) - now < 60 )))" "1"
+fi
 
 # --- files ----------------------------------------------------------------------
 mkdir -p d/e/f

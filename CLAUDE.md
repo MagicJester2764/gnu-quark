@@ -263,6 +263,8 @@ pid twice; `timeout` waiting for ever was a SIGCHLD nobody raised.
   and nothing else. A named pipe is not opened `O_RDWR`, so `exec 3<>pipe`
   fails; `<(...)` is made of `/dev/fd`, which bash prefers when it has both.
 - **No utmp**: `who`, `users` and `pinky` print nothing.
+- **No time zone data**, so the date is UTC unless `TZ` spells a zone out;
+  and no network, so nothing sets the clock but `date -s`.
 - **No combining characters** on the console, and one keyboard layout.
 - **A program run by the shell holds what the shell holds.** The kernel
   copies capabilities at a fork and keeps them across an exec, and nothing

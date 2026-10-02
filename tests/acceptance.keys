@@ -205,6 +205,11 @@ saw ^uid=1000\(ada\) gid=1000\(ada\) groups=1000\(ada\),1001\(staff\)$
 saw ^cat: /root/secret: Permission denied$
 saw ^cat: /etc/shadow: Permission denied$
 saw ^for the staff$
+# Nor does a user set the date, which is everybody's: that is a right, and
+# this one was not given it.
+type su ada -c 'date -s 2031-01-01'\n
+expect 30 #$
+saw ^date: cannot set date: Operation not permitted$
 
 # Ctrl-D at the prompt logs out, and there is a login prompt again. The user
 # logs in: not with a wrong password, and with the right one.
