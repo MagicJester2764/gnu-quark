@@ -157,6 +157,12 @@ saw ^timed out 124$
 
 # And the rest, by the system itself: ninety-odd small things with known
 # answers, each done by bash or by one of the coreutils.
+# Every processor the machine has is one GNU's programs can count: from the
+# firmware's tables, through the kernel and the C library, to coreutils.
+type echo "$(nproc) of @SMP@ processors"\n
+expect 30 #$
+saw ^@SMP@ of @SMP@ processors$
+
 type bash /usr/share/gnu-quark/selftest\n
 expect 300 #$
 saw ^selftest: \d+ passed, 0 failed$

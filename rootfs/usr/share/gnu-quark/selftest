@@ -70,7 +70,10 @@ is "uname"         "$(uname -s)"                                "Quark"
 is "id"            "$(id -un):$(id -u):$(id -gn)"               "root:0:root"
 is "whoami"        "$(whoami)"                                  "root"
 is "env"           "$(env -i X=1 /usr/bin/printenv X)"          "1"
-is "nproc"         "$(nproc)"                                   "1"
+# How many processors is the machine's business. That it is a number, and
+# that every one of them is this program's to run on, is the system's.
+is "nproc"         "$(nproc | grep -c '^[1-9][0-9]*$')"         "1"
+is "nproc --all"   "$(nproc --all)"                             "$(nproc)"
 is "df"            "$(df -P / | tail -1 | tr -s ' ' | cut -d' ' -f6)" "/"
 
 # --- characters that are more than a byte ----------------------------------------
