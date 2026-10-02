@@ -84,8 +84,9 @@ and `qemu-system-x86_64`.
 export PATH="$HOME/.local/bin:$HOME/opt/cross/bin:$PATH"
 
 make          # build everything and assemble gnu-quark.img
-make run      # boot it in QEMU
+make run      # boot it in QEMU, with four processors (SMP=1 for one)
 make test     # boot it, type the acceptance test at it, check what it said
+SMP=4 make test   # the same, on four processors: it is run on both
 
 make EXTRA="make"    # the same image, with GNU make in it
 ```

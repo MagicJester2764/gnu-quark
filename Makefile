@@ -76,8 +76,12 @@ image: root
 
 # -cpu max is deliberate: the default CPU models expose neither SMEP nor SMAP,
 # so the kernel's supervisor-mode protections are silently off without it.
+# Four processors, which the kernel uses and `nproc` counts: `make run SMP=1`
+# for a machine with one. (`make test` gives it one unless told, and is run
+# on both.)
 KVM := $(shell test -w /dev/kvm && echo -enable-kvm)
-QEMU_FLAGS = $(KVM) -cpu max -m 1G -L $(OVMF_PATH)/ -pflash $(OVMF_PATH)/OVMF_CODE.fd
+SMP ?= 4
+QEMU_FLAGS = $(KVM) -cpu max -smp $(SMP) -m 1G -L $(OVMF_PATH)/ -pflash $(OVMF_PATH)/OVMF_CODE.fd
 
 run: image
 	qemu-system-x86_64 $(QEMU_FLAGS) -serial stdio -hda $(IMAGE)

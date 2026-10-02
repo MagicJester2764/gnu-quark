@@ -37,8 +37,9 @@ it was put, here `~/.local/bin`. Without the first two nothing configures.
 
 ```bash
 make          # stage the three trees, build the packages, assemble the image
-make run      # boot gnu-quark.img in QEMU
-make test     # boot it and type tests/acceptance.keys at it
+make run      # boot gnu-quark.img in QEMU: four processors, SMP=1 for one
+make test     # boot it and type tests/acceptance.keys at it: one processor,
+              # SMP=4 in the environment for four, and a change passes on both
 make check    # e2fsck the root filesystem in the image
 ```
 
