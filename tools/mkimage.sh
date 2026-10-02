@@ -33,7 +33,7 @@ ROOT_MB=${ROOT_MB:-160}
 
 # The services init starts from the boot image, by the names it looks for.
 # Not NET: there is nothing here to talk to a network with.
-BOOT_SERVICES="NAMESRVR FB QTTY KEYBOARD DISK INPUT VFS"
+BOOT_SERVICES="NAMESRVR FB QTTY KEYBOARD DISK INPUT VFS AUTH"
 
 mkdir -p "$WORK"
 
