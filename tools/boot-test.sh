@@ -8,6 +8,7 @@
 # a filesystem is a test of what was left on the disk.
 # `CPU` is the processor to emulate: `max` unless said otherwise, which has the
 # SMEP and SMAP the kernel turns on when it finds them.
+# `SMP` is how many processors the machine has: one unless said otherwise.
 #
 # A program's output goes to the screen and not to the serial line, so the
 # screen is the result. The console draws one bitmap font on a grid, which
@@ -44,7 +45,7 @@ cd "$TOP"
 # The firmware writes its variable store, and the one in bang is tracked. Boot
 # from a copy, so a test run does not leave the bootloader's tree dirty.
 cp "$BANG/firmware-redist/ovmf/OVMF_VARS.fd" "$RUN/OVMF_VARS.fd"
-qemu-system-x86_64 $(test -w /dev/kvm && echo -enable-kvm) -cpu "${CPU:-max}" -m 1G \
+qemu-system-x86_64 $(test -w /dev/kvm && echo -enable-kvm) -cpu "${CPU:-max}" -smp "${SMP:-1}" -m 1G \
   -L "$BANG/firmware-redist/ovmf/" \
   -pflash "$BANG/firmware-redist/ovmf/OVMF_CODE.fd" \
   -pflash "$RUN/OVMF_VARS.fd" \
