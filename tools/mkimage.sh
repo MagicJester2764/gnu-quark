@@ -31,9 +31,11 @@ IMAGE=$4
 ESP_MB=${ESP_MB:-16}
 ROOT_MB=${ROOT_MB:-160}
 
-# The services init starts from the boot image, by the names it looks for.
-# Not NET: there is nothing here to talk to a network with.
-BOOT_SERVICES="NAMESRVR FB QTTY KEYBOARD DISK INPUT VFS AUTH"
+# The services init starts from the boot image, by the names it looks for —
+# and DEVMGR, which holds the machine's devices and starts the disk's driver
+# for the IDE controller it finds. Not NET: there is nothing here to talk to a
+# network with.
+BOOT_SERVICES="NAMESRVR FB QTTY KEYBOARD DEVMGR DISK INPUT VFS AUTH"
 
 mkdir -p "$WORK"
 
