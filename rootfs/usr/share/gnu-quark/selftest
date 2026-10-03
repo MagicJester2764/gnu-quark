@@ -252,6 +252,16 @@ after"
 # signal's handler runs in the middle of it, and the trap at the next command.
 is "trap in a loop" "$(timeout 20 bash -c 'trap "echo caught; exit 3" USR1; (sleep 1; kill -USR1 $$) & while :; do :; done'; echo $?)" "caught
 3"
+# What a program has used is counted, and the shell can say how much of it
+# was computing; how nice a program is, is the kernel's to keep; and so is
+# how long it may run — told with SIGXCPU at the soft limit, killed at the
+# hard one, which is what `ulimit -t` sets.
+used=$( { TIMEFORMAT=%U; time bash -c 'i=0; while [ $i -lt 20000 ]; do i=$((i+1)); done'; } 2>&1 )
+is "time"          "$([ "${used%.*}${used#*.}" -gt 20 ] 2>/dev/null && echo counted || echo "$used")" "counted"
+is "nice"          "$(nice -n 5 nice)"                          "5"
+is "ulimit -t"     "$(timeout 20 bash -c 'ulimit -t 1; while :; do :; done'; echo $?)" "137"
+is "SIGXCPU"       "$(timeout 20 bash -c 'ulimit -S -t 1; trap "echo told; exit 4" XCPU; while :; do :; done'; echo $?)" "told
+4"
 is "SIGPIPE"       "$(yes | head -1)"                           "y"
 is "script file"   "$(printf '#!/usr/bin/bash\necho from a script $1\n' > s; chmod +x s; ./s arg)" "from a script arg"
 is "sh"            "$(sh -c 'echo $0')"                         "sh"
