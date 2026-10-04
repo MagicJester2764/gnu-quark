@@ -272,6 +272,17 @@ is "\$\$ is stable" "$(echo $$)"                                "$$"
 is "pids differ"   "$(true & a=$!; wait; true & b=$!; wait; [ $a != $b ] && echo yes)" "yes"
 is "after a job"   "$(sleep 1 & wait; a=$(date +%s); sleep 2; echo $(( $(date +%s) - a >= 2 )))" "1"
 
+# --- what the system says of itself: /proc -----------------------------------------
+# A program is called what it was started as, which its `exec` says: bash
+# forks, and the child becomes `cat`. /proc/$$ is this shell, and a place
+# to be.
+is "/proc: a name" "$(cat /proc/self/comm)"                     "cat"
+is "its arguments" "$(cat /proc/self/cmdline | tr '\0' ' ')"    "cat /proc/self/cmdline "
+is "a shell's"     "$(grep '^Name:' /proc/$$/status | cut -f2)" "bash"
+is "a place"       "$(cd /proc/$$ && pwd -P)"                   "/proc/$$"
+is "memory"        "$(grep -c '^MemTotal: *[0-9]* kB$' /proc/meminfo)" "1"
+is "the root"      "$(cut -d' ' -f2 /proc/mounts | head -1)"    "/"
+
 cd /
 rm -rf "$T"
 echo "selftest: $pass passed, $fail failed"

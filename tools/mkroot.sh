@@ -41,7 +41,7 @@ if [ -e "$ROOT" ]; then
     exit 1
 fi
 mkdir -p "$ROOT/usr/bin" "$ROOT/usr/sbin" "$ROOT/etc" "$ROOT/root" "$ROOT/home" \
-         "$ROOT/tmp" "$ROOT/var" "$ROOT/dev"
+         "$ROOT/tmp" "$ROOT/var" "$ROOT/dev" "$ROOT/proc"
 ln -s usr/bin "$ROOT/bin"
 ln -s usr/sbin "$ROOT/sbin"
 
@@ -77,6 +77,8 @@ cp -a "$HERE/rootfs/." "$ROOT/"
 
 chmod 700 "$ROOT/root"
 chmod 1777 "$ROOT/tmp"
+# The file server's, as /dev is, and found by its directory.
+chmod 555 "$ROOT/proc"
 find "$ROOT/etc" -type f -exec chmod 644 {} +
 # The passwords are root's to read and nobody else's.
 chmod 600 "$ROOT/etc/shadow"

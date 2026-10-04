@@ -99,7 +99,7 @@ expect 20 #$
 saw ^\[1\]\+  Stopped +sleep 100$
 type ps\n
 expect 20 #$
-saw ^ +\d+ +\d+ +\d+ +STOP +0 +-?\d+ +\d+:\d\d\.\d\d$
+saw ^ +\d+ +\d+ +\d+ +STOP +0 +-?\d+ +\d+:\d\d\.\d\d  sleep 100$
 
 # Behind, it runs. In front again, Ctrl-C is for it and not for the shell.
 type bg; sleep 1; jobs\n
