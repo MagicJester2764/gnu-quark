@@ -165,8 +165,9 @@ means to be told:
   carry a copy of, the one macro it needs to compile, through `MAKEFILES`.
   It says which and why.
 - A recipe passes `configure` the flags the package has for what Quark has
-  not got — no translations, no ACLs, no shared libraries to load — and for
-  make, which is written in the C of before 2023, the flag that says so.
+  not got — no translations, no ACLs — and for what this system does not
+  use, shared libraries; and for make, which is written in the C of before
+  2023, the flag that says so.
 
 When a package needed something Quark had not got, Quark grew it. Between
 them these programs asked for files that are kernel descriptors, so that
@@ -177,9 +178,10 @@ console that draws UTF-8; named pipes; process groups, sessions and jobs
 that stop; and `posix_spawn`, which is how make starts everything it runs.
 Those are in the kernel and its C library now, each with a test.
 
-Every program is static. There is no dynamic loader and no shared library,
-so a C library that changes means every program built again, and the recipes
-see to that themselves.
+Every program is static. Quark's C library can be a shared library, its own
+dynamic loader, but nothing here is linked to it and the image carries
+neither, so a C library that changes means every program built again, and
+the recipes see to that themselves.
 
 ## The image
 

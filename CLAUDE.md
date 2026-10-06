@@ -208,9 +208,10 @@ this system rather than a pile of programs: `passwd`, `group`, `shadow`,
 `tools/mkimage.sh` makes the disk without being root and without mounting
 anything: `mkfs.ext2 -d` populates the filesystem from the directory, a
 `debugfs` pass gives every file to user 0 (they were the builder's), and
-`e2fsck` has to pass before the image is put together. The root is ext2
-because Quark's ext4 cannot yet shorten a file whose extents have outgrown
-the inode, and `> file` does exactly that.
+`e2fsck` has to pass before the image is put together. The root is ext2.
+It was made so while Quark's ext4 could not shorten a file whose extents had
+outgrown the inode, which `> file` does; it can now, and nothing has yet
+asked for the root to move.
 
 `boot.img` on the EFI partition holds the services `init` starts before
 there is a root to read: the name server, the framebuffer, the console, the
@@ -270,8 +271,9 @@ pid twice; `timeout` waiting for ever was a SIGCHLD nobody raised.
   root's holds all of them, and so does everything root runs.
 - **No `sudo`, `usermod`, `groupdel`, `chsh` or `newgrp`.** `su` is the one
   way to be somebody else.
-- `stdbuf` is not built: it works by loading a library into another program.
-  For the same reason gawk has no extensions and make no `load`.
+- `stdbuf` is not built: it works by loading a library into another program,
+  and every program here is static. For the same reason gawk has no
+  extensions and make no `load`.
 - `grep -P` wants PCRE2, and `locate` something to run `updatedb`.
 - Only `x86_64-quark-musl-gcc`'s static C programs: no C++ package has been
   tried here, and nothing links a shared library.
